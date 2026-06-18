@@ -30,6 +30,17 @@ CREATE TABLE IF NOT EXISTS grupos (
   FULLTEXT INDEX ft_busqueda (nombre, descripcion)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS correos_contacto (
+  id                  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  correo              VARCHAR(254) NOT NULL,
+  grupos_publicados   INT UNSIGNED NOT NULL DEFAULT 1,
+  ultimo_grupo_nombre VARCHAR(120) NULL DEFAULT NULL,
+  creado_en           TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+  actualizado_en      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_correo (correo),
+  INDEX idx_actualizado (actualizado_en DESC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS etiquetas (
   id        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nombre    VARCHAR(30)  NOT NULL,

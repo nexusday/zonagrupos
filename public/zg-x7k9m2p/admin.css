@@ -213,3 +213,121 @@ body {
   opacity: 0.6;
   cursor: wait;
 }
+
+.admin-correo {
+  max-width: none;
+  display: block;
+  background: transparent;
+  border: none;
+  padding: 0;
+  gap: 0;
+}
+
+.admin-correo-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .admin-correo-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-correo-lista {
+  min-width: 0;
+}
+
+.admin-correo-toolbar {
+  margin-bottom: .75rem;
+}
+
+.admin-correo-contador {
+  font-size: .85rem;
+  color: var(--suave);
+  margin-left: auto;
+}
+
+.admin-correo-tabla-wrap {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.admin-correo-col-check {
+  width: 2.5rem;
+}
+
+.admin-correo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: var(--card);
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  padding: 1.25rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.admin-correo-form__titulo {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.admin-correo-ayuda {
+  font-size: .8rem;
+  color: var(--suave);
+  margin-top: -.35rem;
+}
+
+.admin-correo-todos {
+  padding: .5rem 0;
+  border-top: 1px solid var(--borde);
+}
+
+.admin-correo__info {
+  font-size: .85rem;
+  color: var(--suave);
+  padding: .65rem .75rem;
+  background: var(--fondo);
+  border-radius: 10px;
+  border: 1px solid var(--borde);
+  margin-bottom: 1rem;
+}
+
+.admin-correo-form label {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  font-size: .85rem;
+  color: var(--suave);
+}
+
+.admin-correo-form input,
+.admin-correo-form textarea {
+  padding: .65rem .75rem;
+  border-radius: 10px;
+  border: 1px solid var(--borde);
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: inherit;
+  font-size: .95rem;
+}
+
+.admin-correo-form textarea { resize: vertical; min-height: 140px; }
+
+.admin-correo__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+}
+
+.admin-correo__estado {
+  font-size: .85rem;
+  color: var(--verde);
+}
+
+.admin-correo__estado--error { color: var(--rojo); }

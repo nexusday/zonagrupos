@@ -110,7 +110,9 @@
       tab.classList.add('admin-tab--activo');
       document.getElementById('tab-grupos').hidden = tab.dataset.tab !== 'grupos';
       document.getElementById('tab-reportes').hidden = tab.dataset.tab !== 'reportes';
+      document.getElementById('tab-correo').hidden = tab.dataset.tab !== 'correo';
       if (tab.dataset.tab === 'reportes') cargarReportes();
+      if (tab.dataset.tab === 'correo') cargarCorreoPanel();
     });
   });
 
@@ -142,7 +144,7 @@
 
     const tbody = document.getElementById('cuerpo-grupos');
     if (!grupos.length) {
-      tbody.innerHTML = '<tr><td colspan="9">Sin grupos</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10">Sin grupos</td></tr>';
       return;
     }
 
@@ -152,6 +154,7 @@
           <a href="${esc(g.url)}" target="_blank" rel="noopener">${esc(g.nombre)}</a>
           <br><small style="color:#9494a8">${esc(g.slug)}</small>
         </td>
+        <td><small>${esc(g.correo_publicador || '—')}</small></td>
         <td>${esc(g.plataforma)}</td>
         <td>${esc(g.pais?.nombre || '—')}</td>
         <td>
@@ -261,6 +264,161 @@
     await Promise.all([cargarEstadisticas(), cargarGrupos()]);
     if (!document.getElementById('tab-reportes').hidden) cargarReportes();
   }
+
+  async function cargarCorreoPanel() {
+    await Promise.all([cargarCorreoConfig(), cargarListaCorreos()]);
+  }
+
+  async function cargarCorreoConfig() {
+    const info = document.getElementById('correo-desde-info');
+    const btn = document.getElementById('btn-enviar-correo');
+    try {
+      const datos = await api('correo_config', { method: 'GET' });
+      if (datos.configurado) {
+        const total = datos.total_correos ?? 0;
+        info.textContent = `Desde: ${datos.nombre_remitente} <${datos.desde}> · ${total} correo${total === 1 ? '' : 's'} guardados`;
+        btn.disabled = false;
+      } else {
+        info.textContent = 'El envío de correo no está configurado en el servidor.';
+        btn.disabled = true;
+      }
+    } catch {
+      info.textContent = 'No se pudo cargar la configuración del correo.';
+      btn.disabled = true;
+    }
+  }
+
+  function obtenerCorreosSeleccionados() {
+    return [...document.querySelectorAll('.correo-check:checked')].map((c) => c.value);
+  }
+
+  function actualizarContadorCorreos() {
+    const total = document.querySelectorAll('.correo-check').length;
+    const marcados = document.querySelectorAll('.correo-check:checked').length;
+    const contador = document.getElementById('correo-contador');
+    const todos = document.getElementById('correo-enviar-todos').checked;
+    if (todos) {
+      contador.textContent = `Enviarás a los ${total} correos`;
+    } else if (marcados > 0) {
+      contador.textContent = `${marcados} de ${total} seleccionados`;
+    } else {
+      contador.textContent = `${total} correo${total === 1 ? '' : 's'}`;
+    }
+
+    const selTodos = document.getElementById('correo-seleccionar-todos');
+    if (total === 0) {
+      selTodos.checked = false;
+      selTodos.indeterminate = false;
+      return;
+    }
+    selTodos.checked = marcados === total;
+    selTodos.indeterminate = marcados > 0 && marcados < total;
+  }
+
+  async function cargarListaCorreos() {
+    const tbody = document.getElementById('cuerpo-correos');
+    try {
+      const { correos } = await api('correos', { method: 'GET' });
+      if (!correos.length) {
+        tbody.innerHTML = '<tr><td colspan="5">Aún no hay correos. Se guardan al publicar grupos.</td></tr>';
+        actualizarContadorCorreos();
+        return;
+      }
+
+      tbody.innerHTML = correos.map((c) => `
+        <tr>
+          <td><input type="checkbox" class="correo-check" value="${esc(c.correo)}"></td>
+          <td>${esc(c.correo)}</td>
+          <td>${c.grupos_publicados}</td>
+          <td>${esc(c.ultimo_grupo_nombre || '—')}</td>
+          <td>${fmtFecha(c.actualizado_en)}</td>
+        </tr>
+      `).join('');
+
+      tbody.querySelectorAll('.correo-check').forEach((check) => {
+        check.addEventListener('change', () => {
+          if (document.getElementById('correo-enviar-todos').checked) {
+            document.getElementById('correo-enviar-todos').checked = false;
+            document.querySelectorAll('.correo-check').forEach((c) => { c.disabled = false; });
+          }
+          actualizarContadorCorreos();
+        });
+      });
+      actualizarContadorCorreos();
+    } catch (ex) {
+      tbody.innerHTML = `<tr><td colspan="5">${esc(ex.message)}</td></tr>`;
+    }
+  }
+
+  document.getElementById('correo-seleccionar-todos').addEventListener('change', (e) => {
+    if (document.getElementById('correo-enviar-todos').checked) return;
+    const marcar = e.target.checked;
+    document.querySelectorAll('.correo-check').forEach((c) => { c.checked = marcar; });
+    actualizarContadorCorreos();
+  });
+
+  document.getElementById('correo-enviar-todos').addEventListener('change', (e) => {
+    const activo = e.target.checked;
+    document.getElementById('correo-seleccionar-todos').disabled = activo;
+    document.querySelectorAll('.correo-check').forEach((c) => {
+      c.disabled = activo;
+      if (activo) c.checked = false;
+    });
+    actualizarContadorCorreos();
+  });
+
+  document.getElementById('form-correo').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const estado = document.getElementById('correo-estado');
+    const btn = document.getElementById('btn-enviar-correo');
+    const enviarTodos = document.getElementById('correo-enviar-todos').checked;
+    const seleccionados = obtenerCorreosSeleccionados();
+    const manual = document.getElementById('correo-para').value.trim();
+
+    if (!enviarTodos && seleccionados.length === 0 && !manual) {
+      alert('Selecciona correos de la lista, marca «todos» o escribe uno adicional.');
+      return;
+    }
+
+    if (enviarTodos) {
+      const total = document.querySelectorAll('.correo-check').length;
+      if (total === 0 && !manual) {
+        alert('No hay correos en la lista.');
+        return;
+      }
+      if (!confirm(`¿Enviar este mensaje a los ${total} correos de la lista?`)) return;
+    } else if (seleccionados.length > 1) {
+      if (!confirm(`¿Enviar a ${seleccionados.length} correos seleccionados?`)) return;
+    }
+
+    estado.hidden = true;
+    estado.classList.remove('admin-correo__estado--error');
+    btn.disabled = true;
+
+    const cuerpo = {
+      para: manual,
+      asunto: document.getElementById('correo-asunto').value.trim(),
+      mensaje: document.getElementById('correo-mensaje').value.trim(),
+      todos: enviarTodos,
+      correos: seleccionados,
+    };
+
+    try {
+      const datos = await api('enviar_correo', {
+        method: 'POST',
+        body: JSON.stringify(cuerpo),
+      });
+      estado.textContent = datos.mensaje || 'Correos enviados.';
+      estado.hidden = false;
+      document.getElementById('correo-mensaje').value = '';
+    } catch (ex) {
+      estado.textContent = ex.message || 'No se pudo enviar.';
+      estado.classList.add('admin-correo__estado--error');
+      estado.hidden = false;
+    } finally {
+      btn.disabled = false;
+    }
+  });
 
   verificarSesion();
 })();

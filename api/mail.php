@@ -87,8 +87,39 @@ function enviarCorreoGrupoPublicado(string $para, string $nombreGrupo, string $s
     return enviarCorreoSmtp($config, $para, $asunto, $html, $texto);
 }
 
+function enviarCorreoGenerico(string $para, string $asunto, string $mensaje): bool
+{
+    $config = configuracionCorreo();
+    if ($config === null) {
+        return false;
+    }
+
+    $para = validarCorreoPublicacion($para);
+    $asunto = trim($asunto);
+    $mensaje = trim($mensaje);
+
+    if ($para === '' || $asunto === '' || $mensaje === '') {
+        return false;
+    }
+
+    $mensajeHtml = nl2br(htmlspecialchars($mensaje, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), false);
+    $html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"></head><body style="font-family:system-ui,sans-serif;line-height:1.6;color:#1a1a1a;max-width:560px;margin:0 auto;padding:24px;">'
+        . $mensajeHtml
+        . '<p style="margin-top:32px;font-size:13px;color:#888;">— ZonaGrupos</p>'
+        . '</body></html>';
+
+    return enviarCorreoSmtp($config, $para, $asunto, $html, $mensaje);
+}
+
 function enviarCorreoSmtp(array $config, string $para, string $asunto, string $html, string $textoPlano = ''): bool
 {
+    if (!in_array('ssl', stream_get_transports(), true) && !in_array('tls', stream_get_transports(), true)) {
+        if (function_exists('registrarLog')) {
+            registrarLog('error', 'PHP sin OpenSSL: no se pueden enviar correos en este entorno', ['para' => $para]);
+        }
+        return false;
+    }
+
     try {
         $cliente = new ClienteSmtp($config);
         $cliente->conectar();
@@ -104,7 +135,7 @@ function enviarCorreoSmtp(array $config, string $para, string $asunto, string $h
         return true;
     } catch (Throwable $e) {
         if (function_exists('registrarLog')) {
-            registrarLog('error', 'Error al enviar correo SMTP', ['error' => $e->getMessage(), 'para' => $para]);
+            registrarLog('error', 'Error al enviar correo', ['error' => $e->getMessage(), 'para' => $para]);
         }
         return false;
     }

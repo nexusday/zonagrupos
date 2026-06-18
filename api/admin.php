@@ -8,6 +8,8 @@ require_once __DIR__ . '/etiquetas-logica.php';
 require_once __DIR__ . '/texto.php';
 require_once __DIR__ . '/admin-auth.php';
 require_once __DIR__ . '/logger.php';
+require_once __DIR__ . '/mail.php';
+require_once __DIR__ . '/correos-contacto.php';
 
 enviarCabecerasCors();
 
@@ -200,6 +202,112 @@ try {
         responderJson(['exito' => true, 'mensaje' => 'Reporte actualizado.']);
     }
 
+    if ($metodo === 'GET' && $accion === 'correo_config') {
+        $config = configuracionCorreo();
+        $totalCorreos = 0;
+        try {
+            $totalCorreos = (int) $bd->query('SELECT COUNT(*) FROM correos_contacto')->fetchColumn();
+        } catch (PDOException) {
+            $totalCorreos = 0;
+        }
+        responderJson([
+            'exito'            => true,
+            'configurado'      => $config !== null,
+            'desde'            => $config['desde'] ?? '',
+            'nombre_remitente' => $config['nombre'] ?? 'ZonaGrupos',
+            'total_correos'    => $totalCorreos,
+        ]);
+    }
+
+    if ($metodo === 'GET' && $accion === 'correos') {
+        try {
+            $correos = obtenerCorreosContacto($bd);
+        } catch (PDOException) {
+            responderError('Lista de correos no disponible. Ejecuta: npm run actualizar-bd', 500);
+        }
+        responderJson(['exito' => true, 'correos' => $correos, 'total' => count($correos)]);
+    }
+
+    if ($metodo === 'POST' && $accion === 'enviar_correo') {
+        $datos = leerCuerpoJson();
+        $asunto = trim($datos['asunto'] ?? '');
+        $mensaje = trim($datos['mensaje'] ?? '');
+        $todos = !empty($datos['todos']);
+        $lista = is_array($datos['correos'] ?? null) ? $datos['correos'] : [];
+        $manual = validarCorreoPublicacion($datos['para'] ?? '');
+
+        if ($asunto === '' || mb_strlen($asunto) > 200) {
+            responderError('El título es obligatorio (máximo 200 caracteres).');
+        }
+        if ($mensaje === '' || mb_strlen($mensaje) > 5000) {
+            responderError('El mensaje es obligatorio (máximo 5000 caracteres).');
+        }
+        if (configuracionCorreo() === null) {
+            responderError('El envío de correo no está configurado en el servidor.');
+        }
+
+        $destinos = [];
+        if ($todos) {
+            try {
+                $destinos = obtenerTodosCorreosContacto($bd);
+            } catch (PDOException) {
+                responderError('Lista de correos no disponible. Ejecuta: npm run actualizar-bd', 500);
+            }
+        } else {
+            $destinos = normalizarListaCorreos($lista);
+        }
+
+        if ($manual !== '') {
+            $destinos = normalizarListaCorreos(array_merge($destinos, [$manual]));
+        }
+
+        if ($destinos === []) {
+            responderError('Selecciona al menos un correo o marca enviar a todos.');
+        }
+
+        if (count($destinos) > 100) {
+            responderError('Máximo 100 correos por envío. Divide la lista en varios envíos.');
+        }
+
+        $enviados = 0;
+        $fallidos = [];
+
+        foreach ($destinos as $para) {
+            if (enviarCorreoGenerico($para, $asunto, $mensaje)) {
+                $enviados++;
+            } else {
+                $fallidos[] = $para;
+            }
+            usleep(250000);
+        }
+
+        registrarLog('info', 'Admin envió correos', [
+            'asunto'   => $asunto,
+            'total'    => count($destinos),
+            'enviados' => $enviados,
+            'fallidos' => count($fallidos),
+        ]);
+
+        if ($enviados === 0) {
+            responderError('No se pudo enviar a ningún destinatario.');
+        }
+
+        $texto = $enviados === 1
+            ? 'Correo enviado a 1 persona.'
+            : "Correo enviado a {$enviados} personas.";
+
+        if ($fallidos !== []) {
+            $texto .= ' No se pudo enviar a ' . count($fallidos) . '.';
+        }
+
+        responderJson([
+            'exito'    => true,
+            'mensaje'  => $texto,
+            'enviados' => $enviados,
+            'fallidos' => $fallidos,
+        ]);
+    }
+
     responderError('Acción no encontrada.', 404);
 
 } catch (PDOException $e) {
@@ -229,6 +337,7 @@ function mapearGrupoAdmin(array $fila, array $etiquetas): array
         'clasificacion'      => $fila['clasificacion'] ?? 'normal',
         'clasificacion_etiqueta' => etiquetaClasificacion($fila['clasificacion'] ?? 'normal'),
         'reportes_pendientes'=> (int) ($fila['reportes_pendientes'] ?? 0),
+        'correo_publicador'  => $fila['correo_publicador'] ?? null,
         'etiquetas'          => $etiquetas,
         'creado_en'          => $fila['creado_en'],
     ];

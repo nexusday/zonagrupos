@@ -13,6 +13,7 @@
     "actualizar-visitas": "node scripts/actualizar-visitas.js",
     "actualizar-clasificacion": "node scripts/actualizar-clasificacion.js",
     "actualizar-correo": "node scripts/actualizar-correo.js",
+    "actualizar-correos-contacto": "node scripts/actualizar-correos-contacto.js",
     "iniciar-mysql": "node scripts/iniciar-mysql.js"
   },
   "engines": {

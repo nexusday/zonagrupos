@@ -9,6 +9,7 @@ require_once __DIR__ . '/geo.php';
 require_once __DIR__ . '/texto.php';
 require_once __DIR__ . '/logger.php';
 require_once __DIR__ . '/mail.php';
+require_once __DIR__ . '/correos-contacto.php';
 
 enviarCabecerasCors();
 
@@ -450,6 +451,12 @@ try {
             registrarLog('info', 'Grupo publicado', ['id' => $nuevoId, 'slug' => $slug, 'pais' => $pais['codigo']]);
         }
 
+        try {
+            registrarCorreoContacto($bd, $correo, $nombre);
+        } catch (PDOException $e) {
+            registrarLog('warning', 'No se pudo guardar correo en contactos', ['error' => $e->getMessage()]);
+        }
+
         $stmtGrupo = $bd->prepare('SELECT * FROM grupos WHERE id = :id');
         $stmtGrupo->execute([':id' => $nuevoId]);
         $grupo = mapearGrupo($stmtGrupo->fetch(), obtenerEtiquetasGrupo($bd, $nuevoId), true);
@@ -466,7 +473,7 @@ try {
 
         $mensajeExito = $correoEnviado
             ? '¡Grupo publicado! Revisa tu correo con el enlace para compartir.'
-            : '¡Grupo publicado correctamente!';
+            : '¡Grupo publicado! No pudimos enviar el correo; revisa también la carpeta de spam.';
 
         responderJson([
             'exito'          => true,
@@ -564,7 +571,7 @@ try {
         responderError('Ese enlace ya está registrado.');
     }
     if (str_contains($e->getMessage(), 'Unknown column')) {
-        responderError('Base de datos desactualizada. Ejecuta: npm run actualizar-bd', 500);
+        responderError('Base de datos desactualizada. En local ejecuta: npm run actualizar-bd (incluye clasificación y correo).', 500);
     }
     responderError('Error de base de datos.', 500);
 } catch (Throwable $e) {

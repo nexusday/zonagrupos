@@ -160,6 +160,21 @@ function verificarMysql() {
   }
 }
 
+function advertirPhpSinCorreo() {
+  if (!rutaPhp) return;
+  try {
+    const salida = execSync(`"${rutaPhp}" -r "echo in_array('ssl', stream_get_transports(), true) ? 'OK' : 'NO';"`, {
+      stdio: 'pipe',
+      shell: true,
+      windowsHide: true,
+    });
+    if (salida.toString().trim() !== 'OK') {
+      console.warn('\n  ⚠ PHP sin OpenSSL: los correos al publicar no funcionarán en local.');
+      console.warn('    En php.ini activa: extension=openssl\n');
+    }
+  } catch { /* */ }
+}
+
 function ejecutarPhpPagina(archivoPhp, req, res, paramsExtra = {}, tipoContenido = 'text/html; charset=utf-8') {
   return new Promise((resolve) => {
     let cuerpoEntrada = '';
@@ -441,4 +456,5 @@ servidor.listen(PUERTO, () => {
   console.log(`  ║  BD:   ${(process.env.BD_HOST || 'localhost').slice(0, 28).padEnd(28)}  ║`);
   console.log('  ╚══════════════════════════════════════════╝');
   console.log('');
+  advertirPhpSinCorreo();
 });

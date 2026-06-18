@@ -39,7 +39,7 @@ function textoPublicacionValido(string $texto, bool $permitirSaltos = false): bo
     }
 
     $permitidos = $permitirSaltos ? '\n\r' : '';
-    $patron = '/^(?:[\p{Script=Latin}\p{N}\p{M}\s.,!?¿¡:;\-\'"()@#&%+°/\\[\\]«»' . $permitidos . ']|\p{Extended_Pictographic}|\x{200D}|\x{FE0F})+$/u';
+    $patron = '~^(?:[\p{Script=Latin}\p{N}\p{M}\s.,!?¿¡:;\-\'"()@#&%+°/\\[\\]«»' . $permitidos . ']|\p{Extended_Pictographic}|\x{200D}|\x{FE0F})+$~u';
 
     return preg_match($patron, $texto) === 1;
 }

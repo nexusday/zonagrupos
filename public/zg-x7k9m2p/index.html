@@ -36,6 +36,7 @@
     <nav class="admin-tabs">
       <button type="button" class="admin-tab admin-tab--activo" data-tab="grupos">Grupos</button>
       <button type="button" class="admin-tab" data-tab="reportes">Reportes <span id="badge-reportes" class="admin-badge" hidden>0</span></button>
+      <button type="button" class="admin-tab" data-tab="correo">Correo</button>
     </nav>
 
     <section id="tab-grupos" class="admin-tab-panel">
@@ -58,6 +59,7 @@
           <thead>
             <tr>
               <th>Grupo</th>
+              <th>Correo</th>
               <th>Plataforma</th>
               <th>País</th>
               <th>Tipo</th>
@@ -97,6 +99,66 @@
           </thead>
           <tbody id="cuerpo-reportes"></tbody>
         </table>
+      </div>
+    </section>
+
+    <section id="tab-correo" class="admin-tab-panel" hidden>
+      <p class="admin-correo__info" id="correo-desde-info">Cargando remitente…</p>
+
+      <div class="admin-correo-grid">
+        <div class="admin-correo-lista">
+          <div class="admin-toolbar admin-correo-toolbar">
+            <label class="admin-check">
+              <input type="checkbox" id="correo-seleccionar-todos"> Seleccionar todos
+            </label>
+            <span id="correo-contador" class="admin-correo-contador">0 correos</span>
+          </div>
+          <div class="admin-tabla-wrap admin-correo-tabla-wrap">
+            <table class="admin-tabla" id="tabla-correos">
+              <thead>
+                <tr>
+                  <th class="admin-correo-col-check"></th>
+                  <th>Correo</th>
+                  <th>Grupos</th>
+                  <th>Último grupo</th>
+                  <th>Actualizado</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-correos">
+                <tr><td colspan="5">Cargando…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <form id="form-correo" class="admin-correo-form">
+          <h2 class="admin-correo-form__titulo">Enviar mensaje</h2>
+          <label>
+            Correo adicional (opcional)
+            <input type="email" id="correo-para" name="para" maxlength="254"
+                   placeholder="otro@correo.com" autocomplete="off">
+          </label>
+          <label>
+            Título
+            <input type="text" id="correo-asunto" name="asunto" required maxlength="200"
+                   placeholder="Asunto del mensaje">
+          </label>
+          <label>
+            Mensaje
+            <textarea id="correo-mensaje" name="mensaje" required maxlength="5000" rows="8"
+                      placeholder="Escribe el mensaje…"></textarea>
+          </label>
+          <label class="admin-check admin-correo-todos">
+            <input type="checkbox" id="correo-enviar-todos"> Enviar a todos los correos de la lista
+          </label>
+          <p class="admin-correo-ayuda" id="correo-ayuda-envio">
+            Marca uno o más correos de la tabla, o activa «todos».
+          </p>
+          <div class="admin-correo__acciones">
+            <button type="submit" class="btn btn--primario" id="btn-enviar-correo">Enviar</button>
+            <p id="correo-estado" class="admin-correo__estado" hidden></p>
+          </div>
+        </form>
       </div>
     </section>
   </div>
