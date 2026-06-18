@@ -1,37 +1,32 @@
 # ZonaGrupos — Apache (Spaceship / cPanel)
-# Sube este archivo junto con index.html, grupo.html, css/, js/ a public_html
+# Sube este archivo junto con index.php, grupo.php, css/, js/ a public_html
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
-  # SEO
+  RewriteRule ^og/portada\.png$ og/portada.php [L]
+  RewriteRule ^og/grupo/([a-zA-Z0-9_-]+)\.png$ og/grupo.php?slug=$1 [L,QSA]
   RewriteRule ^sitemap\.xml$ sitemap.php [L]
 
-  # API PHP
   RewriteRule ^api/(.*)$ api/$1 [L,QSA]
 
-  # Archivos y carpetas reales
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Página de grupo
   RewriteRule ^grupo/([a-zA-Z0-9_-]+)/?$ grupo.php?slug=$1 [L,QSA]
 
-  # Panel admin (ruta debe coincidir con ADMIN_RUTA en sun.env)
   RewriteRule ^zg-x7k9m2p/?$ zg-x7k9m2p/index.html [L,QSA]
   RewriteRule ^zg-x7k9m2p/(.*)$ zg-x7k9m2p/$1 [L,QSA]
 
-  # Inicio
-  RewriteRule ^$ index.html [L]
+  RewriteRule ^$ index.php [L]
+  RewriteRule ^index\.html$ index.php [L,QSA]
 </IfModule>
 
-# Tipos MIME
 <IfModule mod_mime.c>
   AddType application/javascript .js
   AddType text/css .css
 </IfModule>
 
-# No listar carpetas
 Options -Indexes

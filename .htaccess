@@ -13,7 +13,9 @@
   # No exponer la ruta /public/ en la URL
   RewriteRule ^public/ - [F,L]
 
-  # SEO
+  # SEO e imágenes para redes
+  RewriteRule ^og/portada\.png$ public/og/portada.php [L]
+  RewriteRule ^og/grupo/([a-zA-Z0-9_-]+)\.png$ public/og/grupo.php?slug=$1 [L,QSA]
   RewriteRule ^sitemap\.xml$ public/sitemap.php [L]
 
   # API PHP
@@ -24,9 +26,10 @@
   RewriteRule ^zg-x7k9m2p/?$ public/zg-x7k9m2p/index.html [L,QSA]
   RewriteRule ^zg-x7k9m2p/(.*)$ public/zg-x7k9m2p/$1 [L,QSA]
 
-  # Inicio y HTML sueltos (evita copias viejas en la raíz de public_html)
-  RewriteRule ^$ public/index.html [L]
-  RewriteRule ^index\.html$ public/index.html [L,QSA]
+  # Inicio (SEO dinámico)
+  RewriteRule ^$ public/index.php [L]
+  RewriteRule ^index\.php$ public/index.php [L,QSA]
+  RewriteRule ^index\.html$ public/index.php [L,QSA]
   RewriteRule ^grupo\.html$ public/grupo.html [L,QSA]
 
   # Todo lo demás que exista en public/ (css, js, img, fuentes, etc.)
@@ -36,7 +39,7 @@
 </IfModule>
 
 # Si Apache busca index en la raíz, usar el de public/
-DirectoryIndex public/index.html
+DirectoryIndex public/index.php public/index.html
 
 <IfModule mod_authz_core.c>
   <Files "config.env">

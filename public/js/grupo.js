@@ -54,9 +54,22 @@
     setTimeout(() => t.remove(), 4000);
   }
 
+  function asignarMeta(selector, valor, prop = 'content') {
+    const el = document.querySelector(selector);
+    if (!el) return;
+    if (prop === 'href' && 'href' in el) {
+      el.href = valor;
+    } else if ('content' in el) {
+      el.content = valor;
+    }
+  }
+
   function actualizarSeo(grupo) {
     const origen = window.location.origin;
-    const imagenOg = `${origen}/img/zonagrupos.png`;
+    const slug = grupo.slug || '';
+    const imagenOg = slug
+      ? `${origen}/og/grupo/${encodeURIComponent(slug)}.png`
+      : `${origen}/og/portada.png`;
     const plataforma = nombresPlataforma[grupo.plataforma] || 'WhatsApp';
     const pais = grupo.pais?.nombre || '';
     const titulo = pais && grupo.pais?.codigo !== 'LAT'
@@ -73,17 +86,19 @@
     desc += ' Enlace de invitación en ZonaGrupos.';
     if (desc.length > 160) desc = `${desc.slice(0, 157)}…`;
 
+    const urlCompleta = `${origen}${grupo.url}`;
+
     document.title = titulo;
-    document.querySelector('meta[name="description"]').content = desc;
-    document.getElementById('meta-og-titulo').content = titulo;
-    document.getElementById('meta-og-descripcion').content = desc;
-    document.getElementById('meta-canonical').href = `${origen}${grupo.url}`;
-    const ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) ogUrl.content = `${origen}${grupo.url}`;
-    const ogImg = document.getElementById('meta-og-imagen') || document.querySelector('meta[property="og:image"]');
-    if (ogImg) ogImg.content = imagenOg;
-    const twImg = document.querySelector('meta[name="twitter:image"]');
-    if (twImg) twImg.content = imagenOg;
+    asignarMeta('meta[name="description"]', desc);
+    asignarMeta('meta[property="og:title"]', titulo);
+    asignarMeta('meta[property="og:description"]', desc);
+    asignarMeta('link[rel="canonical"]', urlCompleta, 'href');
+    asignarMeta('meta[property="og:url"]', urlCompleta);
+    asignarMeta('meta[property="og:image"]', imagenOg);
+    asignarMeta('meta[property="og:image:secure_url"]', imagenOg);
+    asignarMeta('meta[name="twitter:title"]', titulo);
+    asignarMeta('meta[name="twitter:description"]', desc);
+    asignarMeta('meta[name="twitter:image"]', imagenOg);
   }
 
   function crearParticulas() {
@@ -435,7 +450,11 @@
     try {
       const { grupo } = await ApiGrupos.obtenerDetalle(slug);
       grupoActual = grupo;
-      actualizarSeo(grupo);
+      try {
+        actualizarSeo(grupo);
+      } catch {
+        /* El SEO ya viene del servidor; no bloquear la vista */
+      }
 
       const contenedor = document.getElementById('contenido-grupo');
       document.getElementById('seo-prerender')?.remove();

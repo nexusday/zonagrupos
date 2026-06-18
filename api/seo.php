@@ -243,3 +243,132 @@ function etiquetasDeGrupo(PDO $bd, int $grupoId): array
 
     return is_array($filas) ? array_map('strval', $filas) : [];
 }
+
+function urlImagenOgPortada(?string $base = null): string
+{
+    $base = $base ?? urlBaseApp();
+
+    return $base . '/og/portada.png';
+}
+
+function urlImagenOgGrupo(string $slug, ?string $base = null): string
+{
+    $base = $base ?? urlBaseApp();
+
+    return $base . '/og/grupo/' . rawurlencode($slug) . '.png';
+}
+
+function jsonLdInicio(?string $base = null): array
+{
+    $base = $base ?? urlBaseApp();
+
+    return [
+        '@context' => 'https://schema.org',
+        '@graph'   => [
+            jsonLdSitio($base),
+            [
+                '@type'       => 'Organization',
+                '@id'         => $base . '/#organizacion',
+                'name'        => 'ZonaGrupos',
+                'url'         => $base . '/',
+                'logo'        => $base . '/img/zonagrupos.png',
+                'description' => 'Directorio de grupos de WhatsApp, Telegram y Discord para la comunidad latina.',
+            ],
+        ],
+    ];
+}
+
+function metaInicio(?string $base = null): array
+{
+    $base = $base ?? urlBaseApp();
+
+    return [
+        'titulo'       => 'ZonaGrupos — Grupos de WhatsApp, Telegram y Discord',
+        'descripcion'  => 'Directorio de grupos de WhatsApp, Telegram y Discord en Latinoamérica. Busca por tema o país y publica tu enlace de invitación gratis.',
+        'keywords'     => 'grupos whatsapp, grupos telegram, grupos discord, enlaces grupos, directorio grupos, comunidades latinoamérica',
+        'canonical'    => $base . '/',
+        'robots'       => 'index, follow, max-image-preview:large',
+        'og_type'      => 'website',
+        'og_image'     => urlImagenOgPortada($base),
+        'og_image_alt' => 'ZonaGrupos — Directorio de grupos en Latinoamérica',
+        'json_ld'      => jsonLdInicio($base),
+    ];
+}
+
+function metaGrupo(array $grupo, array $etiquetas = [], ?string $base = null): array
+{
+    $base = $base ?? urlBaseApp();
+    $slug = (string) ($grupo['slug'] ?? '');
+    $indexar = $slug !== '';
+
+    return [
+        'titulo'       => construirTituloGrupo($grupo),
+        'descripcion'  => construirDescripcionGrupo($grupo, $etiquetas),
+        'keywords'     => construirKeywordsGrupo($grupo, $etiquetas),
+        'canonical'    => urlGrupo($slug, $base),
+        'robots'       => $indexar ? 'index, follow, max-image-preview:large' : 'noindex, nofollow',
+        'og_type'      => 'article',
+        'og_image'     => urlImagenOgGrupo($slug, $base),
+        'og_image_alt' => trim($grupo['nombre'] ?? 'Grupo en ZonaGrupos'),
+        'json_ld'      => $indexar ? jsonLdGrupo($grupo, $etiquetas, $base) : null,
+    ];
+}
+
+function escMeta(string $texto): string
+{
+    return htmlspecialchars($texto, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+function emitirMetasPagina(array $meta): void
+{
+    $titulo = escMeta($meta['titulo'] ?? 'ZonaGrupos');
+    $descripcion = escMeta($meta['descripcion'] ?? '');
+    $keywords = escMeta($meta['keywords'] ?? '');
+    $canonical = escMeta($meta['canonical'] ?? urlBaseApp() . '/');
+    $robots = escMeta($meta['robots'] ?? 'index, follow');
+    $ogType = escMeta($meta['og_type'] ?? 'website');
+    $ogImage = escMeta($meta['og_image'] ?? urlImagenOgPortada());
+    $ogImageAlt = escMeta($meta['og_image_alt'] ?? 'ZonaGrupos');
+
+    echo "  <meta charset=\"UTF-8\">\n";
+    echo "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\">\n";
+    echo "  <meta name=\"description\" content=\"{$descripcion}\">\n";
+    if ($keywords !== '') {
+        echo "  <meta name=\"keywords\" content=\"{$keywords}\">\n";
+    }
+    echo "  <meta name=\"robots\" content=\"{$robots}\">\n";
+    echo "  <meta name=\"author\" content=\"ZonaGrupos\">\n";
+    echo "  <meta name=\"theme-color\" content=\"#0a0a0f\">\n";
+    echo "  <meta name=\"color-scheme\" content=\"dark\">\n";
+    echo "  <meta name=\"format-detection\" content=\"telephone=no\">\n";
+    echo "  <meta name=\"mobile-web-app-capable\" content=\"yes\">\n";
+    echo "  <meta name=\"apple-mobile-web-app-capable\" content=\"yes\">\n";
+    echo "  <meta name=\"apple-mobile-web-app-title\" content=\"ZonaGrupos\">\n";
+    echo "  <meta name=\"apple-mobile-web-app-status-bar-style\" content=\"black-translucent\">\n";
+    echo "  <title>{$titulo}</title>\n";
+    echo "  <link rel=\"canonical\" href=\"{$canonical}\">\n";
+    echo "  <link rel=\"sitemap\" type=\"application/xml\" title=\"Sitemap\" href=\"/sitemap.xml\">\n";
+    echo "  <link rel=\"icon\" href=\"/img/zonagrupos.png\" type=\"image/png\">\n";
+    echo "  <link rel=\"apple-touch-icon\" href=\"/img/zonagrupos.png\">\n";
+    echo "  <meta property=\"og:type\" content=\"{$ogType}\">\n";
+    echo "  <meta property=\"og:site_name\" content=\"ZonaGrupos\">\n";
+    echo "  <meta property=\"og:locale\" content=\"es_419\">\n";
+    echo "  <meta property=\"og:title\" content=\"{$titulo}\">\n";
+    echo "  <meta property=\"og:description\" content=\"{$descripcion}\">\n";
+    echo "  <meta property=\"og:url\" content=\"{$canonical}\">\n";
+    echo "  <meta property=\"og:image\" content=\"{$ogImage}\">\n";
+    echo "  <meta property=\"og:image:secure_url\" content=\"{$ogImage}\">\n";
+    echo "  <meta property=\"og:image:type\" content=\"image/png\">\n";
+    echo "  <meta property=\"og:image:width\" content=\"1200\">\n";
+    echo "  <meta property=\"og:image:height\" content=\"630\">\n";
+    echo "  <meta property=\"og:image:alt\" content=\"{$ogImageAlt}\">\n";
+    echo "  <meta name=\"twitter:card\" content=\"summary_large_image\">\n";
+    echo "  <meta name=\"twitter:title\" content=\"{$titulo}\">\n";
+    echo "  <meta name=\"twitter:description\" content=\"{$descripcion}\">\n";
+    echo "  <meta name=\"twitter:image\" content=\"{$ogImage}\">\n";
+    echo "  <meta name=\"twitter:image:alt\" content=\"{$ogImageAlt}\">\n";
+
+    if (!empty($meta['json_ld']) && is_array($meta['json_ld'])) {
+        emitirJsonLd($meta['json_ld']);
+    }
+}

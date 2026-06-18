@@ -18,16 +18,9 @@ if ($slug === '' && isset($_SERVER['REQUEST_URI'])) {
 }
 
 $appUrl = urlBaseApp();
-$ogImage = $appUrl . '/img/zonagrupos.png';
 $grupoDatos = null;
 $etiquetas = [];
-$indexar = false;
-
-$titulo = 'Grupo no encontrado — ZonaGrupos';
-$descripcion = 'Este grupo no está disponible en ZonaGrupos.';
-$keywords = 'grupos whatsapp, grupos telegram, grupos discord, directorio grupos';
-$canonical = $slug !== '' ? urlGrupo($slug, $appUrl) : $appUrl . '/';
-$jsonLd = null;
+$metaPagina = metaInicio($appUrl);
 
 if ($slug !== '') {
     try {
@@ -41,12 +34,19 @@ if ($slug !== '') {
 
         if ($grupoDatos) {
             $etiquetas = etiquetasDeGrupo($bd, (int) $grupoDatos['id']);
-            $titulo = construirTituloGrupo($grupoDatos);
-            $descripcion = construirDescripcionGrupo($grupoDatos, $etiquetas);
-            $keywords = construirKeywordsGrupo($grupoDatos, $etiquetas);
-            $canonical = urlGrupo($grupoDatos['slug'], $appUrl);
-            $jsonLd = jsonLdGrupo($grupoDatos, $etiquetas, $appUrl);
-            $indexar = true;
+            $metaPagina = metaGrupo($grupoDatos, $etiquetas, $appUrl);
+        } else {
+            $metaPagina = [
+                'titulo'       => 'Grupo no encontrado — ZonaGrupos',
+                'descripcion'  => 'Este grupo no está disponible o fue eliminado de ZonaGrupos.',
+                'keywords'     => 'grupos whatsapp, grupos telegram, grupos discord',
+                'canonical'    => urlGrupo($slug, $appUrl),
+                'robots'       => 'noindex, nofollow',
+                'og_type'      => 'website',
+                'og_image'     => urlImagenOgPortada($appUrl),
+                'og_image_alt' => 'ZonaGrupos',
+                'json_ld'      => null,
+            ];
         }
     } catch (Throwable) {
         // Valores por defecto
@@ -56,30 +56,7 @@ if ($slug !== '') {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title><?= escOg($titulo) ?></title>
-  <link rel="icon" href="/img/zonagrupos.png" type="image/png">
-  <link rel="apple-touch-icon" href="/img/zonagrupos.png">
-  <meta name="description" content="<?= escOg($descripcion) ?>">
-  <meta name="keywords" content="<?= escOg($keywords) ?>">
-  <meta name="robots" content="<?= $indexar ? 'index, follow, max-image-preview:large' : 'noindex, nofollow' ?>">
-  <link rel="canonical" id="meta-canonical" href="<?= escOg($canonical) ?>">
-  <meta property="og:type" content="article">
-  <meta property="og:site_name" content="ZonaGrupos">
-  <meta property="og:locale" content="es_419">
-  <meta property="og:title" id="meta-og-titulo" content="<?= escOg($titulo) ?>">
-  <meta property="og:description" id="meta-og-descripcion" content="<?= escOg($descripcion) ?>">
-  <meta property="og:url" content="<?= escOg($canonical) ?>">
-  <meta property="og:image" id="meta-og-imagen" content="<?= escOg($ogImage) ?>">
-  <meta property="og:image:alt" content="<?= escOg($grupoDatos['nombre'] ?? 'ZonaGrupos') ?>">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="<?= escOg($titulo) ?>">
-  <meta name="twitter:description" content="<?= escOg($descripcion) ?>">
-  <meta name="twitter:image" content="<?= escOg($ogImage) ?>">
-<?php if ($jsonLd !== null) {
-    emitirJsonLd($jsonLd);
-} ?>
+<?php emitirMetasPagina($metaPagina); ?>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">

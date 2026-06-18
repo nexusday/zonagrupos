@@ -356,6 +356,37 @@ function manejarSolicitud(req, res) {
     return;
   }
 
+  if (ruta === '/og/portada.png') {
+    const archivoOg = path.join(CARPETA_PUBLICA, 'og', 'portada.php');
+    if (rutaPhp && fs.existsSync(archivoOg)) {
+      ejecutarPhpPagina(archivoOg, req, res, {}, 'image/png');
+    } else {
+      res.writeHead(404);
+      res.end();
+    }
+    return;
+  }
+
+  const coincidenciaOgGrupo = ruta.match(/^\/og\/grupo\/([^/]+)\.png$/);
+  if (coincidenciaOgGrupo) {
+    const archivoOg = path.join(CARPETA_PUBLICA, 'og', 'grupo.php');
+    if (rutaPhp && fs.existsSync(archivoOg)) {
+      ejecutarPhpPagina(archivoOg, req, res, { slug: decodeURIComponent(coincidenciaOgGrupo[1]) }, 'image/png');
+    } else {
+      res.writeHead(404);
+      res.end();
+    }
+    return;
+  }
+
+  if (ruta === '/' || ruta === '/index.html' || ruta === '/index.php') {
+    const archivoInicio = path.join(CARPETA_PUBLICA, 'index.php');
+    if (rutaPhp && fs.existsSync(archivoInicio)) {
+      ejecutarPhpPagina(archivoInicio, req, res);
+      return;
+    }
+  }
+
   if (ruta === '/robots.txt') {
     servirEstatico(path.join(CARPETA_PUBLICA, 'robots.txt'), res);
     return;
@@ -388,9 +419,10 @@ function manejarSolicitud(req, res) {
     }
   }
 
-  if (ruta === '/') ruta = '/index.html';
+  if (ruta === '/') ruta = '/index.php';
+  else if (ruta === '/index.html') ruta = '/index.php';
 
-  const archivo = path.join(CARPETA_PUBLICA, ruta);
+  const archivo = path.join(CARPETA_PUBLICA, ruta === '/index.php' ? 'index.php' : ruta.slice(1));
   if (!archivo.startsWith(CARPETA_PUBLICA)) {
     res.writeHead(403);
     res.end('Prohibido');
@@ -399,6 +431,11 @@ function manejarSolicitud(req, res) {
 
   if (fs.existsSync(archivo) && fs.statSync(archivo).isFile()) {
     servirEstatico(archivo, res);
+    return;
+  }
+
+  if (rutaPhp && fs.existsSync(path.join(CARPETA_PUBLICA, 'index.php'))) {
+    ejecutarPhpPagina(path.join(CARPETA_PUBLICA, 'index.php'), req, res);
     return;
   }
 
