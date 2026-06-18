@@ -1,0 +1,19 @@
+{
+  "name": "zona-grupos",
+  "version": "1.0.0",
+  "description": "ZonaGrupos — Directorio de grupos de WhatsApp, Telegram y Discord",
+  "main": "servidor.js",
+  "scripts": {
+    "start": "node servidor.js",
+    "dev": "node servidor.js",
+    "setup-db": "node scripts/configurar-bd.js",
+    "migrar-db": "node scripts/migrar-bd.js",
+    "actualizar-bd": "node scripts/actualizar-bd.js",
+    "iniciar-mysql": "node scripts/iniciar-mysql.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["grupos", "whatsapp", "telegram", "discord", "directorio"],
+  "license": "MIT"
+}

@@ -1,0 +1,12 @@
+<?php
+declare(strict_types=1);
+
+// Copia como config.local.php en el hosting con tus datos reales.
+// Este archivo no se sube a git si lo agregas localmente.
+
+return [
+    'origenes' => [
+        'https://zonagrupos.lat',
+        'https://www.zonagrupos.lat',
+    ],
+];
