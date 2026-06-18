@@ -14,7 +14,7 @@
   RewriteRule ^ - [L]
 
   # Página de grupo
-  RewriteRule ^grupo/[a-zA-Z0-9_-]+/?$ grupo.html [L,QSA]
+  RewriteRule ^grupo/([a-zA-Z0-9_-]+)/?$ grupo.php?slug=$1 [L,QSA]
 
   # Panel admin (ruta debe coincidir con ADMIN_RUTA en sun.env)
   RewriteRule ^zg-x7k9m2p/?$ zg-x7k9m2p/index.html [L,QSA]

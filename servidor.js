@@ -160,6 +160,66 @@ function verificarMysql() {
   }
 }
 
+function ejecutarPhpPagina(archivoPhp, req, res, paramsExtra = {}) {
+  return new Promise((resolve) => {
+    let cuerpoEntrada = '';
+    req.on('data', (chunk) => { cuerpoEntrada += chunk; });
+    req.on('end', () => {
+      const urlParsed = new URL(req.url, `http://localhost:${PUERTO}`);
+      const params = new URLSearchParams(urlParsed.search);
+      Object.entries(paramsExtra).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) params.set(k, String(v));
+      });
+
+      const variables = {
+        ...process.env,
+        REQUEST_METHOD: req.method,
+        REQUEST_URI: req.url,
+        QUERY_STRING: params.toString(),
+        CONTENT_TYPE: req.headers['content-type'] || '',
+        HTTP_ORIGIN: req.headers.origin || '',
+        HTTP_USER_AGENT: req.headers['user-agent'] || '',
+        HTTP_X_ADMIN_TOKEN: req.headers['x-admin-token'] || '',
+        HTTP_X_GEO_PAIS: req.headers['x-geo-pais'] || '',
+        HTTP_X_GEO_PAIS_NOMBRE: req.headers['x-geo-pais-nombre'] || '',
+        REMOTE_ADDR: req.socket.remoteAddress || '127.0.0.1',
+        JSON_CUERPO: cuerpoEntrada,
+      };
+
+      const proceso = spawn(rutaPhp, ['-f', archivoPhp], {
+        env: variables,
+        cwd: RAIZ,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        windowsHide: true,
+      });
+
+      let salida = '';
+      let errores = '';
+
+      proceso.stdout.on('data', (d) => { salida += d; });
+      proceso.stderr.on('data', (d) => { errores += d; });
+
+      proceso.on('close', (code) => {
+        if (code !== 0 || !salida.trim()) {
+          escribirLogServidor('error', 'PHP página', { archivo: path.basename(archivoPhp), stderr: errores.trim().slice(0, 200) });
+          res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+          res.end('Error al cargar la página.');
+        } else {
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.end(salida);
+        }
+        resolve();
+      });
+
+      proceso.on('error', () => {
+        res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('No se pudo ejecutar PHP.');
+        resolve();
+      });
+    });
+  });
+}
+
 function ejecutarPhp(archivoPhp, req, res) {
   return new Promise((resolve) => {
     let cuerpoEntrada = '';
@@ -268,9 +328,15 @@ function manejarSolicitud(req, res) {
     return;
   }
 
-  // Página individual de grupo (SEO): /grupo/mi-grupo-123
+  // Página individual de grupo (SEO + preview WhatsApp)
   if (ruta.startsWith('/grupo/') && ruta !== '/grupo/') {
-    servirEstatico(path.join(CARPETA_PUBLICA, 'grupo.html'), res);
+    const slug = decodeURIComponent(ruta.slice('/grupo/'.length).replace(/\/$/, ''));
+    const archivoGrupo = path.join(CARPETA_PUBLICA, 'grupo.php');
+    if (rutaPhp && fs.existsSync(archivoGrupo)) {
+      ejecutarPhpPagina(archivoGrupo, req, res, { slug });
+    } else {
+      servirEstatico(path.join(CARPETA_PUBLICA, 'grupo.html'), res);
+    }
     return;
   }
 

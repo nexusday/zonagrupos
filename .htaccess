@@ -17,7 +17,7 @@
   RewriteRule ^api/(.*)$ api/$1 [L,QSA]
 
   # Rutas amigables
-  RewriteRule ^grupo/[a-zA-Z0-9_-]+/?$ public/grupo.html [L,QSA]
+  RewriteRule ^grupo/([a-zA-Z0-9_-]+)/?$ public/grupo.php?slug=$1 [L,QSA]
   RewriteRule ^zg-x7k9m2p/?$ public/zg-x7k9m2p/index.html [L,QSA]
   RewriteRule ^zg-x7k9m2p/(.*)$ public/zg-x7k9m2p/$1 [L,QSA]
 

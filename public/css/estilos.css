@@ -1634,21 +1634,16 @@ body.modal-abierto .pie {
   100% { transform: translateY(-100vh) scale(1); opacity: 0; }
 }
 
-/* Hero del grupo */
+/* Hero del grupo — sobrio, sin neón */
 .grupo-hero {
   position: relative;
-  padding: 2.5rem 0 3rem;
+  padding: 2rem 0 2.5rem;
   margin-bottom: 1.5rem;
-  overflow: hidden;
   border-bottom: 1px solid var(--borde);
 }
 
 .grupo-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--color-plataforma) 25%, transparent), transparent 70%);
-  pointer-events: none;
+  display: none;
 }
 
 .grupo-hero__inner {
@@ -1657,39 +1652,34 @@ body.modal-abierto .pie {
 }
 
 .grupo-hero__icono {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 1rem;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 0.85rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 22px;
-  background: color-mix(in srgb, var(--color-plataforma) 18%, var(--fondo-card));
-  border: 1px solid color-mix(in srgb, var(--color-plataforma) 35%, transparent);
-  box-shadow: 0 0 40px color-mix(in srgb, var(--color-plataforma) 30%, transparent);
-  animation: pulso-icono 3s ease-in-out infinite;
+  border-radius: 16px;
+  background: var(--fondo-card);
+  border: 1px solid var(--borde);
+  box-shadow: none;
 }
 
 .grupo-hero__icono i {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   color: var(--color-plataforma);
 }
 
-@keyframes pulso-icono {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 40px color-mix(in srgb, var(--color-plataforma) 30%, transparent); }
-  50%      { transform: scale(1.05); box-shadow: 0 0 60px color-mix(in srgb, var(--color-plataforma) 45%, transparent); }
+.grupo-hero__titulo {
+  font-size: clamp(1.5rem, 5vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0.65rem 0;
+  color: var(--texto);
 }
 
-.grupo-hero__titulo {
-  font-size: clamp(1.6rem, 5vw, 2.5rem);
-  font-weight: 800;
-  line-height: 1.15;
-  margin: 0.75rem 0;
-  background: linear-gradient(135deg, var(--texto) 0%, var(--acento-claro) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+.pagina-grupo .fondo-animado {
+  opacity: 0.35;
 }
 
 .grupo-hero__meta {

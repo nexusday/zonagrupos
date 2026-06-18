@@ -55,25 +55,24 @@
   }
 
   function actualizarSeo(grupo) {
+    const origen = window.location.origin;
+    const imagenOg = `${origen}/img/zonagrupos.png`;
     document.title = `${grupo.nombre} — ZonaGrupos`;
     const desc = grupo.descripcion.slice(0, 160);
     document.querySelector('meta[name="description"]').content = desc;
     document.getElementById('meta-og-titulo').content = grupo.nombre;
     document.getElementById('meta-og-descripcion').content = desc;
-    document.getElementById('meta-canonical').href = `${window.location.origin}${grupo.url}`;
+    document.getElementById('meta-canonical').href = `${origen}${grupo.url}`;
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.content = `${origen}${grupo.url}`;
+    const ogImg = document.getElementById('meta-og-imagen') || document.querySelector('meta[property="og:image"]');
+    if (ogImg) ogImg.content = imagenOg;
+    const twImg = document.querySelector('meta[name="twitter:image"]');
+    if (twImg) twImg.content = imagenOg;
   }
 
   function crearParticulas() {
-    const cont = document.getElementById('particulas-grupo');
-    if (!cont || cont.childElementCount) return;
-    for (let i = 0; i < 18; i++) {
-      const p = document.createElement('span');
-      p.className = 'particula';
-      p.style.left = `${Math.random() * 100}%`;
-      p.style.animationDelay = `${Math.random() * 8}s`;
-      p.style.animationDuration = `${6 + Math.random() * 8}s`;
-      cont.appendChild(p);
-    }
+    /* Sin partículas flotantes — aspecto más limpio */
   }
 
   function animarContador(elemento, valorFinal, duracion = 900) {
