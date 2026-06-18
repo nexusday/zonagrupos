@@ -699,6 +699,10 @@ main {
   color: var(--texto-suave);
 }
 
+.filtro-activo[hidden] {
+  display: none !important;
+}
+
 .filtro-activo__limpiar {
   border: none;
   background: none;
@@ -1205,6 +1209,74 @@ main {
 }
 
 .estado p { margin-bottom: 1.5rem; font-size: 0.9rem; }
+
+.estado--vacio {
+  padding: 2.5rem 1rem 3rem;
+  max-width: 20rem;
+  margin-inline: auto;
+}
+
+.estado--vacio h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.estado--vacio p {
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--texto-mudo);
+}
+
+.estado-vacio__icono {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--fondo-elevado);
+  border: 1px solid var(--borde);
+}
+
+.estado-vacio__icono svg {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  color: var(--texto-mudo);
+}
+
+.estado-vacio__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--acento-claro);
+  font-family: var(--fuente);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--transicion);
+  min-height: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.estado-vacio__cta svg {
+  width: 15px;
+  height: 15px;
+  transition: transform var(--transicion);
+}
+
+.estado-vacio__cta:hover {
+  color: var(--texto);
+}
+
+.estado-vacio__cta:hover svg {
+  transform: translateX(2px);
+}
 
 .spinner {
   width: 40px;
@@ -1922,13 +1994,25 @@ body.modal-abierto .pie {
   background: var(--fondo-elevado);
 }
 
-.detalle-grupo__acciones--desktop {
+/* En móvil: Like y Unirse van en la barra fija inferior */
+.detalle-grupo__accion--solo-escritorio {
   display: none;
 }
 
 @media (min-width: 640px) {
-  .detalle-grupo__acciones--desktop {
-    display: flex;
+  .detalle-grupo__accion--solo-escritorio {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 639px) {
+  .detalle-grupo__acciones {
+    justify-content: stretch;
+  }
+
+  .detalle-grupo__acciones .btn--fantasma {
+    flex: 1;
+    min-width: calc(50% - 0.375rem);
   }
 }
 

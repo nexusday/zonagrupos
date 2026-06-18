@@ -161,6 +161,8 @@
     elementos.error.hidden = !error;
     elementos.grilla.hidden = vacio || error;
     elementos.paginacion.hidden = vacio || error;
+    if (vacio) refrescarIconos(elementos.vacio);
+    if (error) refrescarIconos(elementos.error);
   }
 
   function renderizarEtiquetas(etiquetas, clickeable = true, mostrarUsos = false) {
@@ -195,6 +197,7 @@
       elementos.filtroActivoTexto.textContent = partes.join(' · ');
       elementos.filtroActivo.hidden = false;
     } else {
+      elementos.filtroActivoTexto.textContent = '';
       elementos.filtroActivo.hidden = true;
     }
 

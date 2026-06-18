@@ -129,11 +129,14 @@ $meta = metaInicio();
         </div>
 
         <div id="estado-vacio" class="estado estado--vacio" hidden>
-          <i data-lucide="inbox"></i>
+          <div class="estado-vacio__icono" aria-hidden="true">
+            <i data-lucide="search-x"></i>
+          </div>
           <h3>No hay resultados</h3>
-          <p>Prueba con otra búsqueda o sé el primero en publicar un grupo.</p>
-          <button class="btn btn--primario" id="btn-publicar-vacio">
-            <i data-lucide="plus"></i> Publicar grupo
+          <p>Prueba con otra búsqueda o publica el primero.</p>
+          <button type="button" class="estado-vacio__cta" id="btn-publicar-vacio">
+            Publicar un grupo
+            <i data-lucide="arrow-right"></i>
           </button>
         </div>
 

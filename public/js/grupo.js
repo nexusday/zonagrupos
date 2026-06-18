@@ -223,11 +223,11 @@
 
             ${avisoPais}
 
-            <div class="detalle-grupo__acciones detalle-grupo__acciones--desktop">
-              <button class="btn btn--like ${grupo.ya_dio_like ? 'activo' : ''}" id="btn-like">
+            <div class="detalle-grupo__acciones">
+              <button class="btn btn--like detalle-grupo__accion--solo-escritorio ${grupo.ya_dio_like ? 'activo' : ''}" id="btn-like">
                 <i data-lucide="heart"></i> <span>${formatearNumero(grupo.likes)}</span> Me gusta
               </button>
-              <button class="btn btn--unirse ${grupo.plataforma} btn--grande" id="btn-unirse"
+              <button class="btn btn--unirse detalle-grupo__accion--solo-escritorio ${grupo.plataforma} btn--grande" id="btn-unirse"
                       ${grupo.puede_unirse ? '' : 'disabled'}>
                 <i data-lucide="external-link"></i> Unirse al grupo
               </button>
