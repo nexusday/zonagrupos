@@ -12,6 +12,7 @@
     "actualizar-reportes": "node scripts/actualizar-reportes.js",
     "actualizar-visitas": "node scripts/actualizar-visitas.js",
     "actualizar-clasificacion": "node scripts/actualizar-clasificacion.js",
+    "actualizar-correo": "node scripts/actualizar-correo.js",
     "iniciar-mysql": "node scripts/iniciar-mysql.js"
   },
   "engines": {

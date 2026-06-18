@@ -253,6 +253,13 @@
 
     <form id="formulario-grupo" class="modal__cuerpo" novalidate>
       <div class="campo">
+        <label for="campo-correo">Tu correo electrónico <span class="requerido">*</span></label>
+        <input type="email" id="campo-correo" name="correo" maxlength="254" required
+               placeholder="tu@correo.com" autocomplete="email" inputmode="email">
+        <span class="campo__ayuda">Te enviaremos el enlace de tu grupo para que lo compartas.</span>
+      </div>
+
+      <div class="campo">
         <label for="campo-nombre">Nombre del grupo <span class="requerido">*</span></label>
         <input type="text" id="campo-nombre" name="nombre" maxlength="120" required
                placeholder="Ej: Gamers LATAM 🔥" autocomplete="off">

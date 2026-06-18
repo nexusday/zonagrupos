@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS grupos (
   pais_nombre     VARCHAR(80)  NOT NULL DEFAULT 'Latinoamérica',
   restriccion_pais ENUM('todos','solo_pais') NOT NULL DEFAULT 'todos',
   clasificacion   ENUM('normal','adulto') NOT NULL DEFAULT 'normal',
+  correo_publicador VARCHAR(254) NULL DEFAULT NULL,
   likes           INT UNSIGNED NOT NULL DEFAULT 0,
   visitas         INT UNSIGNED NOT NULL DEFAULT 0,
   activo          TINYINT(1)   NOT NULL DEFAULT 1,
@@ -23,6 +24,7 @@ CREATE TABLE IF NOT EXISTS grupos (
   UNIQUE KEY uq_slug (slug),
   INDEX idx_plataforma (plataforma),
   INDEX idx_clasificacion (clasificacion),
+  INDEX idx_correo_creado (correo_publicador, creado_en DESC),
   INDEX idx_likes (likes DESC),
   INDEX idx_creado (creado_en DESC),
   FULLTEXT INDEX ft_busqueda (nombre, descripcion)

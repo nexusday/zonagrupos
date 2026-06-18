@@ -616,6 +616,13 @@
       }
 
       const nombre = document.getElementById('campo-nombre').value.trim();
+      const correo = document.getElementById('campo-correo').value.trim().toLowerCase();
+
+      if (!correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+        mostrarToast('Ingresa un correo electrónico válido', 'error');
+        btnEnviar.disabled = false;
+        return;
+      }
 
       if (!nombre || nombre.length < 3) {
         mostrarToast('El nombre debe tener al menos 3 caracteres', 'error');
@@ -635,6 +642,7 @@
 
       const datos = {
         nombre,
+        correo,
         descripcion,
         etiquetas,
         enlace: document.getElementById('campo-enlace').value.trim(),

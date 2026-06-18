@@ -8,6 +8,7 @@ require_once __DIR__ . '/etiquetas-logica.php';
 require_once __DIR__ . '/geo.php';
 require_once __DIR__ . '/texto.php';
 require_once __DIR__ . '/logger.php';
+require_once __DIR__ . '/mail.php';
 
 enviarCabecerasCors();
 
@@ -314,6 +315,11 @@ try {
         $plataforma  = trim($datos['plataforma'] ?? 'whatsapp');
         $restriccion = ($datos['restriccion_pais'] ?? 'todos') === 'solo_pais' ? 'solo_pais' : 'todos';
         $clasificacion = ($datos['clasificacion'] ?? 'normal') === 'adulto' ? 'adulto' : 'normal';
+        $correo = validarCorreoPublicacion($datos['correo'] ?? '');
+
+        if ($correo === '') {
+            responderError('Ingresa un correo electrónico válido. Te enviaremos el enlace de tu grupo.');
+        }
 
         if ($nombre === '' || mb_strlen($nombre) < 3) {
             responderError('El nombre debe tener al menos 3 caracteres.');
@@ -365,6 +371,15 @@ try {
             responderError('Ese enlace ya está registrado.');
         }
 
+        $stmtLimite = $bd->prepare(
+            'SELECT COUNT(*) AS total FROM grupos
+             WHERE correo_publicador = :correo AND activo = 1 AND creado_en > DATE_SUB(NOW(), INTERVAL 24 HOUR)'
+        );
+        $stmtLimite->execute([':correo' => $correo]);
+        if ((int) $stmtLimite->fetchColumn() >= 5) {
+            responderError('Demasiadas publicaciones con este correo hoy. Intenta mañana o usa otro correo.');
+        }
+
         $pais = obtenerPaisVisitante();
 
         $bd->beginTransaction();
@@ -382,6 +397,7 @@ try {
                     pais_nombre = :pais_nombre,
                     restriccion_pais = :restriccion_pais,
                     clasificacion = :clasificacion,
+                    correo_publicador = :correo_publicador,
                     slug = :slug,
                     activo = 1,
                     likes = 0,
@@ -396,6 +412,7 @@ try {
                 ':pais_nombre'      => $pais['nombre'],
                 ':restriccion_pais' => $restriccion,
                 ':clasificacion'    => $clasificacion,
+                ':correo_publicador' => $correo,
                 ':slug'             => $slug,
                 ':id'               => $nuevoId,
             ]);
@@ -406,8 +423,8 @@ try {
             registrarLog('info', 'Grupo republicado (reactivado)', ['id' => $nuevoId, 'slug' => $slug]);
         } else {
             $stmt = $bd->prepare(
-                'INSERT INTO grupos (nombre, descripcion, enlace, plataforma, pais_codigo, pais_nombre, restriccion_pais, clasificacion)
-                 VALUES (:nombre, :descripcion, :enlace, :plataforma, :pais_codigo, :pais_nombre, :restriccion_pais, :clasificacion)'
+                'INSERT INTO grupos (nombre, descripcion, enlace, plataforma, pais_codigo, pais_nombre, restriccion_pais, clasificacion, correo_publicador)
+                 VALUES (:nombre, :descripcion, :enlace, :plataforma, :pais_codigo, :pais_nombre, :restriccion_pais, :clasificacion, :correo_publicador)'
             );
             $stmt->execute([
                 ':nombre'           => $nombre,
@@ -418,6 +435,7 @@ try {
                 ':pais_nombre'      => $pais['nombre'],
                 ':restriccion_pais' => $restriccion,
                 ':clasificacion'    => $clasificacion,
+                ':correo_publicador' => $correo,
             ]);
 
             $nuevoId = (int) $bd->lastInsertId();
@@ -438,10 +456,23 @@ try {
         $grupo['ya_dio_like'] = false;
         $grupo['puede_unirse'] = true;
 
+        $correoEnviado = enviarCorreoGrupoPublicado($correo, $nombre, $slug);
+        if (!$correoEnviado) {
+            registrarLog('warning', 'Grupo publicado pero no se pudo enviar correo', [
+                'id' => $nuevoId,
+                'correo' => $correo,
+            ]);
+        }
+
+        $mensajeExito = $correoEnviado
+            ? '¡Grupo publicado! Revisa tu correo con el enlace para compartir.'
+            : '¡Grupo publicado correctamente!';
+
         responderJson([
-            'exito'   => true,
-            'mensaje' => '¡Grupo publicado correctamente!',
-            'grupo'   => $grupo,
+            'exito'          => true,
+            'mensaje'        => $mensajeExito,
+            'grupo'          => $grupo,
+            'correo_enviado' => $correoEnviado,
         ], 201);
     }
 
