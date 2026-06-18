@@ -112,7 +112,7 @@ if ($slug !== '') {
 
   <main class="pagina-grupo__main">
 <?php if ($grupoDatos): ?>
-    <article class="seo-prerender contenedor" id="seo-prerender">
+    <article class="seo-prerender" id="seo-prerender" aria-hidden="true">
       <h1><?= escOg($grupoDatos['nombre']) ?></h1>
       <p class="seo-prerender__meta">
         Grupo de <?= escOg(nombrePlataformaSeo($grupoDatos['plataforma'])) ?>
@@ -127,7 +127,7 @@ if ($slug !== '') {
 <?php endif; ?>
     </article>
 <?php endif; ?>
-    <div id="estado-carga" class="estado estado--carga grupo-estado-centrado"<?= $grupoDatos ? ' hidden' : '' ?>>
+    <div id="estado-carga" class="estado estado--carga grupo-estado-centrado">
       <div class="spinner"></div>
       <p>Cargando grupo...</p>
     </div>

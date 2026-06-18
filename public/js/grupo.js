@@ -420,6 +420,7 @@
   }
 
   async function iniciar() {
+    mostrarVista('carga');
     crearParticulas();
     await VisitanteGeo.iniciarBadge();
     if (typeof lucide !== 'undefined') lucide.createIcons();
