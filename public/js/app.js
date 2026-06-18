@@ -132,7 +132,20 @@
     const toast = document.createElement('div');
     toast.className = `toast toast--${tipo}`;
     toast.textContent = mensaje;
-    elementos.toastContenedor.appendChild(toast);
+
+    let contenedor = elementos.toastContenedor;
+    if (elementos.modal?.open) {
+      let modalToast = elementos.modal.querySelector('.modal__toasts');
+      if (!modalToast) {
+        modalToast = document.createElement('div');
+        modalToast.className = 'modal__toasts';
+        modalToast.setAttribute('aria-live', 'polite');
+        elementos.modal.appendChild(modalToast);
+      }
+      contenedor = modalToast;
+    }
+
+    contenedor.appendChild(toast);
     setTimeout(() => toast.remove(), 3500);
   }
 
@@ -415,6 +428,7 @@
   }
 
   function cerrarModal() {
+    elementos.modal.querySelector('.modal__toasts')?.remove();
     elementos.modal.close();
     document.body.classList.remove('modal-abierto');
   }
@@ -668,8 +682,8 @@
       try {
         const respuesta = await ApiGrupos.crearGrupo(datos);
         log('info', 'Grupo publicado', respuesta.grupo);
-        mostrarToast(respuesta.mensaje, 'exito');
         cerrarModal();
+        mostrarToast(respuesta.mensaje, 'exito');
         estado.pagina = 1;
         await Promise.all([cargarGrupos(), cargarEstadisticas()]);
         if (respuesta.grupo?.url) {

@@ -1283,6 +1283,7 @@ main {
   overflow: hidden;
   box-shadow: var(--sombra);
   overscroll-behavior: contain;
+  position: relative;
 }
 
 .modal[open] {
@@ -1303,6 +1304,22 @@ body.modal-abierto .pie {
 .modal::backdrop {
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
+}
+
+.modal__toasts {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 5.5rem;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.modal__toasts .toast {
+  pointer-events: auto;
 }
 
 .modal__cabecera {

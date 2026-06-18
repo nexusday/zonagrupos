@@ -111,6 +111,48 @@ function enviarCorreoGenerico(string $para, string $asunto, string $mensaje): bo
     return enviarCorreoSmtp($config, $para, $asunto, $html, $mensaje);
 }
 
+function programarCorreoGrupoPublicado(string $para, string $nombreGrupo, string $slug): void
+{
+    $script = dirname(__DIR__) . '/scripts/enviar-correo-fondo.php';
+    if (!is_readable($script)) {
+        enviarCorreoGrupoPublicado($para, $nombreGrupo, $slug);
+        return;
+    }
+
+    $payload = base64_encode(json_encode([
+        'tipo'   => 'grupo_publicado',
+        'para'   => $para,
+        'nombre' => $nombreGrupo,
+        'slug'   => $slug,
+    ], JSON_UNESCAPED_UNICODE));
+
+    $php = getenv('PHP_BIN') ?: '';
+    if ($php === '' && defined('PHP_BINARY')) {
+        $php = PHP_BINARY;
+    }
+    if ($php === '') {
+        $php = 'php';
+    }
+
+    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+        $cmd = 'cmd /C start /B "" ' . escapeshellarg($php) . ' ' . escapeshellarg($script) . ' ' . escapeshellarg($payload);
+        $handle = @popen($cmd, 'r');
+        if ($handle === false) {
+            enviarCorreoGrupoPublicado($para, $nombreGrupo, $slug);
+        } else {
+            pclose($handle);
+        }
+        return;
+    }
+
+    if (!function_exists('exec')) {
+        enviarCorreoGrupoPublicado($para, $nombreGrupo, $slug);
+        return;
+    }
+
+    exec(escapeshellarg($php) . ' ' . escapeshellarg($script) . ' ' . escapeshellarg($payload) . ' > /dev/null 2>&1 &');
+}
+
 function enviarCorreoSmtp(array $config, string $para, string $asunto, string $html, string $textoPlano = ''): bool
 {
     if (!in_array('ssl', stream_get_transports(), true) && !in_array('tls', stream_get_transports(), true)) {

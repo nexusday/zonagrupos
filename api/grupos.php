@@ -372,15 +372,6 @@ try {
             responderError('Ese enlace ya está registrado.');
         }
 
-        $stmtLimite = $bd->prepare(
-            'SELECT COUNT(*) AS total FROM grupos
-             WHERE correo_publicador = :correo AND activo = 1 AND creado_en > DATE_SUB(NOW(), INTERVAL 24 HOUR)'
-        );
-        $stmtLimite->execute([':correo' => $correo]);
-        if ((int) $stmtLimite->fetchColumn() >= 5) {
-            responderError('Demasiadas publicaciones con este correo hoy. Intenta mañana o usa otro correo.');
-        }
-
         $pais = obtenerPaisVisitante();
 
         $bd->beginTransaction();
@@ -463,23 +454,12 @@ try {
         $grupo['ya_dio_like'] = false;
         $grupo['puede_unirse'] = true;
 
-        $correoEnviado = enviarCorreoGrupoPublicado($correo, $nombre, $slug);
-        if (!$correoEnviado) {
-            registrarLog('warning', 'Grupo publicado pero no se pudo enviar correo', [
-                'id' => $nuevoId,
-                'correo' => $correo,
-            ]);
-        }
-
-        $mensajeExito = $correoEnviado
-            ? '¡Grupo publicado! Revisa tu correo con el enlace para compartir.'
-            : '¡Grupo publicado! No pudimos enviar el correo; revisa también la carpeta de spam.';
+        programarCorreoGrupoPublicado($correo, $nombre, $slug);
 
         responderJson([
-            'exito'          => true,
-            'mensaje'        => $mensajeExito,
-            'grupo'          => $grupo,
-            'correo_enviado' => $correoEnviado,
+            'exito'   => true,
+            'mensaje' => '¡Grupo publicado! Te enviaremos el enlace a tu correo en unos momentos.',
+            'grupo'   => $grupo,
         ], 201);
     }
 

@@ -188,6 +188,7 @@ function ejecutarPhpPagina(archivoPhp, req, res, paramsExtra = {}, tipoContenido
 
       const variables = {
         ...process.env,
+        PHP_BIN: rutaPhp,
         REQUEST_METHOD: req.method,
         REQUEST_URI: req.url,
         QUERY_STRING: params.toString(),
@@ -242,6 +243,7 @@ function ejecutarPhp(archivoPhp, req, res) {
     req.on('end', () => {
       const variables = {
         ...process.env,
+        PHP_BIN: rutaPhp,
         REQUEST_METHOD: req.method,
         QUERY_STRING: new URL(req.url, `http://localhost:${PUERTO}`).searchParams.toString(),
         CONTENT_TYPE: req.headers['content-type'] || '',
