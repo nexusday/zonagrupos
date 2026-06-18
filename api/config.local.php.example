@@ -1,10 +1,19 @@
 <?php
 declare(strict_types=1);
 
-// Copia como config.local.php en el hosting con tus datos reales.
-// Este archivo no se sube a git si lo agregas localmente.
+/**
+ * Copia este archivo como config.local.php en el hosting (no se sube a git).
+ * Prioridad: config.local.php > config.env > valores por defecto
+ *
+ * En Spaceship crea api/config.local.php con tus datos del panel MySQL.
+ */
 
 return [
+    'bd_host'    => 'localhost',
+    'bd_nombre'  => 'nzoaqaxydg_zonagrupos_db',
+    'bd_usuario' => 'nzoaqaxydg_zonagrupos_user',
+    'bd_clave'   => 'TU_CLAVE_MYSQL',
+
     'origenes' => [
         'https://zonagrupos.lat',
         'https://www.zonagrupos.lat',

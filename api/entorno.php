@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/cargar-config.php';
+
 /**
  * Adapta variables cuando PHP corre desde el servidor Node (CLI).
  */
