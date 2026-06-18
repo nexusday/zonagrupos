@@ -302,6 +302,23 @@ function metaInicio(?string $base = null): array
     ];
 }
 
+function metaTerminos(?string $base = null): array
+{
+    $base = $base ?? urlBaseApp();
+
+    return [
+        'titulo'       => 'Términos y condiciones | ZonaGrupos',
+        'descripcion'  => 'Cómo ZonaGrupos trata tu IP, cookies, enlaces, correo y demás datos cuando usas el directorio.',
+        'keywords'     => 'términos, condiciones, privacidad, datos, ZonaGrupos',
+        'canonical'    => $base . '/terminos',
+        'robots'       => 'index, follow',
+        'og_type'      => 'website',
+        'og_image'     => urlImagenOgPortada($base),
+        'og_image_alt' => 'Términos y condiciones — ZonaGrupos',
+        'json_ld'      => null,
+    ];
+}
+
 function metaGrupo(array $grupo, array $etiquetas = [], ?string $base = null): array
 {
     $base = $base ?? urlBaseApp();

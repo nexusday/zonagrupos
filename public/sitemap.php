@@ -18,6 +18,12 @@ $urls = [
         'priority'   => '1.0',
         'lastmod'    => $ahora,
     ],
+    [
+        'loc'        => $base . '/terminos',
+        'changefreq' => 'monthly',
+        'priority'   => '0.5',
+        'lastmod'    => $ahora,
+    ],
 ];
 
 try {

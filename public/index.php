@@ -187,6 +187,9 @@ $meta = metaInicio();
         </div>
       </details>
 
+      <nav class="pie__enlaces" aria-label="Legal">
+        <a href="/terminos">Términos y condiciones</a>
+      </nav>
       <p class="pie__copy">&copy; 2026 ZonaGrupos.Lat</p>
     </div>
   </footer>

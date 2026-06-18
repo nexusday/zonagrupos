@@ -387,6 +387,14 @@ function manejarSolicitud(req, res) {
     }
   }
 
+  if (ruta === '/terminos' || ruta === '/terminos/') {
+    const archivoTerminos = path.join(CARPETA_PUBLICA, 'terminos.php');
+    if (rutaPhp && fs.existsSync(archivoTerminos)) {
+      ejecutarPhpPagina(archivoTerminos, req, res);
+      return;
+    }
+  }
+
   if (ruta === '/robots.txt') {
     servirEstatico(path.join(CARPETA_PUBLICA, 'robots.txt'), res);
     return;

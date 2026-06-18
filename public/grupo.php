@@ -143,6 +143,9 @@ if ($slug !== '') {
         <span>ZonaGrupos</span>
       </div>
       <p class="pie__texto">Directorio de grupos para la comunidad latina. Un enlace, un grupo.</p>
+      <nav class="pie__enlaces" aria-label="Legal">
+        <a href="/terminos">Términos y condiciones</a>
+      </nav>
       <p class="pie__copy">&copy; 2026 ZonaGrupos.Lat</p>
     </div>
   </footer>

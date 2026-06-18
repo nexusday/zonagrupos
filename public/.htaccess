@@ -20,6 +20,8 @@
 
   RewriteRule ^grupo/([a-zA-Z0-9_-]+)/?$ grupo.php?slug=$1 [L,QSA]
 
+  RewriteRule ^terminos/?$ terminos.php [L,QSA]
+
   RewriteRule ^zg-x7k9m2p/?$ zg-x7k9m2p/index.html [L,QSA]
   RewriteRule ^zg-x7k9m2p/(.*)$ zg-x7k9m2p/$1 [L,QSA]
 
