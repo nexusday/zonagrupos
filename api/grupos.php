@@ -157,7 +157,7 @@ try {
         $incremento = registrarVisitaGrupo($bd, $grupoId, $huella);
         $fila['visitas'] = (int) $fila['visitas'] + $incremento;
 
-        $paisVisitante = obtenerPaisDesdeIp(obtenerIpCliente());
+        $paisVisitante = obtenerPaisVisitante();
 
         $stmtLike = $bd->prepare(
             'SELECT id FROM likes_registro WHERE grupo_id = :grupo_id AND huella = :huella'
@@ -350,7 +350,7 @@ try {
             responderError('Ese enlace ya está registrado.');
         }
 
-        $pais = obtenerPaisDesdeIp(obtenerIpCliente());
+        $pais = obtenerPaisVisitante();
 
         $bd->beginTransaction();
 
@@ -437,7 +437,7 @@ try {
             responderError('Grupo no encontrado.', 404);
         }
 
-        $paisVisitante = obtenerPaisDesdeIp(obtenerIpCliente());
+        $paisVisitante = obtenerPaisVisitante();
         if (!puedeUnirseAlGrupo($fila, $paisVisitante)) {
             registrarLog('info', 'Acceso denegado por país', [
                 'grupo' => $fila['id'],

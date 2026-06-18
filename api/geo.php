@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/cargar-config.php';
+
 function obtenerIpCliente(): string
 {
     $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
@@ -23,25 +25,54 @@ function esIpLocal(string $ip): bool
         || str_starts_with($ip, '172.');
 }
 
-function obtenerPaisDesdeIp(string $ip): array
+function directorioCacheGeo(): string
 {
-    if (esIpLocal($ip)) {
-        return ['codigo' => 'PE', 'nombre' => 'Perú'];
+    return dirname(__DIR__) . '/logs/geo-cache';
+}
+
+function leerCacheGeo(string $clave): ?array
+{
+    $archivo = directorioCacheGeo() . '/' . md5($clave) . '.json';
+    if (!is_file($archivo) || (time() - filemtime($archivo)) >= 86400) {
+        return null;
+    }
+    $cacheado = json_decode((string) file_get_contents($archivo), true);
+    if (!is_array($cacheado) || empty($cacheado['codigo'])) {
+        return null;
+    }
+    return $cacheado;
+}
+
+function guardarCacheGeo(string $clave, array $pais): void
+{
+    $dir = directorioCacheGeo();
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+    @file_put_contents(
+        $dir . '/' . md5($clave) . '.json',
+        json_encode($pais, JSON_UNESCAPED_UNICODE)
+    );
+}
+
+/**
+ * Consulta ip-api.com. Sin $ip usa la IP pública de salida (útil en localhost + VPN).
+ */
+function consultarIpApi(?string $ip = null): array
+{
+    $claveCache = $ip ?? '__ip_publica__';
+    $cacheado = leerCacheGeo($claveCache);
+    if ($cacheado !== null) {
+        return $cacheado;
     }
 
-    $cacheDir = dirname(__DIR__) . '/logs/geo-cache';
-    $cacheFile = $cacheDir . '/' . md5($ip) . '.json';
-
-    if (is_file($cacheFile) && (time() - filemtime($cacheFile)) < 86400) {
-        $cacheado = json_decode((string) file_get_contents($cacheFile), true);
-        if (is_array($cacheado) && isset($cacheado['codigo'])) {
-            return $cacheado;
-        }
+    if ($ip === null || $ip === '') {
+        $url = 'http://ip-api.com/json/?fields=status,country,countryCode,query';
+    } else {
+        $url = 'http://ip-api.com/json/' . urlencode($ip) . '?fields=status,country,countryCode,query';
     }
 
-    // ip-api.com — gratis, hasta 45 req/min sin clave
-    $url = 'http://ip-api.com/json/' . urlencode($ip) . '?fields=status,country,countryCode';
-    $contexto = stream_context_create(['http' => ['timeout' => 4, 'ignore_errors' => true]]);
+    $contexto = stream_context_create(['http' => ['timeout' => 5, 'ignore_errors' => true]]);
     $respuesta = @file_get_contents($url, false, $contexto);
 
     if ($respuesta === false) {
@@ -58,12 +89,49 @@ function obtenerPaisDesdeIp(string $ip): array
         'nombre' => $datos['country'] ?? 'Desconocido',
     ];
 
-    if (!is_dir($cacheDir)) {
-        @mkdir($cacheDir, 0755, true);
+    $ipReal = $datos['query'] ?? $ip ?? $claveCache;
+    guardarCacheGeo((string) $ipReal, $pais);
+    if ($claveCache !== (string) $ipReal) {
+        guardarCacheGeo($claveCache, $pais);
     }
-    @file_put_contents($cacheFile, json_encode($pais, JSON_UNESCAPED_UNICODE));
 
     return $pais;
+}
+
+function obtenerPaisDesdeIp(string $ip): array
+{
+    $overrideCodigo = envConfig('GEO_PAIS_CODIGO', '');
+    $overrideNombre = envConfig('GEO_PAIS_NOMBRE', '');
+    if ($overrideCodigo !== '' && $overrideNombre !== '' && esIpLocal($ip)) {
+        return [
+            'codigo' => strtoupper($overrideCodigo),
+            'nombre' => $overrideNombre,
+        ];
+    }
+
+    if (esIpLocal($ip)) {
+        return consultarIpApi(null);
+    }
+
+    return consultarIpApi($ip);
+}
+
+/**
+ * País del visitante actual. En local acepta cabeceras del navegador (VPN/extensiones).
+ */
+function obtenerPaisVisitante(): array
+{
+    $ip = obtenerIpCliente();
+
+    if (esIpLocal($ip)) {
+        $codigo = strtoupper(trim($_SERVER['HTTP_X_GEO_PAIS'] ?? ''));
+        $nombre = trim($_SERVER['HTTP_X_GEO_PAIS_NOMBRE'] ?? '');
+        if ($codigo !== '' && $nombre !== '' && preg_match('/^[A-Z]{2,3}$/', $codigo)) {
+            return ['codigo' => $codigo, 'nombre' => $nombre];
+        }
+    }
+
+    return obtenerPaisDesdeIp($ip);
 }
 
 function puedeUnirseAlGrupo(array $grupo, array $paisVisitante): bool

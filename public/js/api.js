@@ -5,8 +5,9 @@ const ApiGrupos = (() => {
   const BASE = '/api';
 
   async function solicitar(ruta, opciones = {}) {
+    const cabecerasGeo = typeof VisitanteGeo !== 'undefined' ? VisitanteGeo.cabecerasApi() : {};
     const respuesta = await fetch(`${BASE}${ruta}`, {
-      headers: { 'Content-Type': 'application/json', ...opciones.headers },
+      headers: { 'Content-Type': 'application/json', ...cabecerasGeo, ...opciones.headers },
       ...opciones,
     });
 

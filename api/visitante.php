@@ -24,7 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 try {
     $ip = obtenerIpCliente();
     $esLocal = esIpLocal($ip);
-    $pais = obtenerPaisDesdeIp($ip);
+    $pais = obtenerPaisVisitante();
+    $desdeNavegador = $esLocal && isset($_SERVER['HTTP_X_GEO_PAIS']);
 
     registrarLog('info', 'País visitante detectado', [
         'ip'    => $esLocal ? 'local' : substr($ip, 0, 8) . '…',
@@ -37,7 +38,9 @@ try {
         'ip'       => $esLocal ? null : $ip,
         'es_local' => $esLocal,
         'pais'     => $pais,
-        'fuente'   => 'ip-api.com',
+        'fuente'   => $desdeNavegador
+            ? 'navegador (VPN)'
+            : ($esLocal ? 'ip-api.com (IP pública)' : 'ip-api.com'),
     ]);
 } catch (Throwable $e) {
     registrarLog('error', 'Error geo visitante: ' . $e->getMessage());

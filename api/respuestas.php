@@ -11,7 +11,7 @@ function enviarCabecerasCors(): void
     }
 
     header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, X-Admin-Token');
+    header('Access-Control-Allow-Headers: Content-Type, X-Admin-Token, X-Geo-Pais, X-Geo-Pais-Nombre');
     header('Content-Type: application/json; charset=utf-8');
 }
 

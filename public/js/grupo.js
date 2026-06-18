@@ -396,7 +396,7 @@
 
   async function iniciar() {
     crearParticulas();
-    VisitanteGeo.iniciarBadge();
+    await VisitanteGeo.iniciarBadge();
     if (typeof lucide !== 'undefined') lucide.createIcons();
 
     const slug = obtenerSlugDeUrl();

@@ -173,6 +173,8 @@ function ejecutarPhp(archivoPhp, req, res) {
         HTTP_ORIGIN: req.headers.origin || '',
         HTTP_USER_AGENT: req.headers['user-agent'] || '',
         HTTP_X_ADMIN_TOKEN: req.headers['x-admin-token'] || '',
+        HTTP_X_GEO_PAIS: req.headers['x-geo-pais'] || '',
+        HTTP_X_GEO_PAIS_NOMBRE: req.headers['x-geo-pais-nombre'] || '',
         REMOTE_ADDR: req.socket.remoteAddress || '127.0.0.1',
         JSON_CUERPO: cuerpoEntrada,
       };
