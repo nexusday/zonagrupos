@@ -1,7 +1,6 @@
 -- Migración: categorías → hashtags (ejecutar si ya tenías la BD antigua)
--- npm run migrar-db
 
-USE zona_grupos;
+USE nzoaqaxydg_zonagrupos_db;
 
 SET FOREIGN_KEY_CHECKS = 0;
 

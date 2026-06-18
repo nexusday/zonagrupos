@@ -1,5 +1,5 @@
 -- Actualización v2: páginas por grupo y restricción por país
-USE zona_grupos;
+USE nzoaqaxydg_zonagrupos_db;
 
 ALTER TABLE grupos
   ADD COLUMN IF NOT EXISTS slug VARCHAR(150) NULL AFTER nombre,
