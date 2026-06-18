@@ -1360,7 +1360,7 @@ main {
   color: var(--acento-claro);
 }
 
-/* Página legal */
+/* Página legal — minimal, tranquila */
 .pagina-legal {
   display: flex;
   flex-direction: column;
@@ -1368,140 +1368,235 @@ main {
   min-height: 100dvh;
 }
 
+.pagina-legal .fondo-animado--sutil {
+  opacity: 0.2;
+}
+
+.pagina-legal .fondo-animado--sutil .orb-3 {
+  display: none;
+}
+
+.cabecera--sutil {
+  background: rgba(7, 7, 9, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom-color: rgba(255, 255, 255, 0.04);
+}
+
+.legal-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color var(--transicion);
+}
+
+.legal-volver svg {
+  width: 16px;
+  height: 16px;
+}
+
+.legal-volver:hover {
+  color: var(--texto);
+}
+
 .legal-main {
   flex: 1;
-  padding: 1.5rem 1rem 3rem;
-  max-width: 42rem;
+  padding: 2rem 0 3.5rem;
+}
+
+.legal-documento {
+  max-width: 36rem;
 }
 
 .legal-cabecera {
-  margin-bottom: 2rem;
-  text-align: center;
+  margin-bottom: 2.25rem;
+}
+
+.legal-cabecera__etiqueta {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--texto-mudo);
+  margin-bottom: 0.65rem;
 }
 
 .legal-cabecera h1 {
-  font-size: clamp(1.5rem, 5vw, 2rem);
-  font-weight: 800;
-  margin-bottom: 0.75rem;
+  font-size: clamp(1.65rem, 4.5vw, 2.1rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 0.85rem;
 }
 
 .legal-cabecera__intro {
   color: var(--texto-suave);
   font-size: 0.95rem;
-  line-height: 1.6;
-  margin-bottom: 0.5rem;
+  font-weight: 400;
+  line-height: 1.7;
+  max-width: 32ch;
 }
 
 .legal-cabecera__fecha {
+  display: block;
+  margin-top: 1rem;
   color: var(--texto-mudo);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
-.legal-contenido {
+.legal-indice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.65rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--borde);
+}
+
+.legal-indice a {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--borde);
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: border-color var(--transicion), color var(--transicion);
+}
+
+.legal-indice a:hover {
+  border-color: var(--borde-hover);
+  color: var(--texto);
+}
+
+.legal-cuerpo {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
 }
 
-.legal-seccion {
-  background: var(--fondo-card);
-  border: 1px solid var(--borde);
-  border-radius: var(--radio);
-  padding: 1.25rem 1.35rem;
+.legal-bloque {
+  padding: 1.75rem 0;
+  border-bottom: 1px solid var(--borde);
+  scroll-margin-top: calc(var(--altura-cabecera) + 1rem);
 }
 
-.legal-seccion__icono {
-  width: 36px;
-  height: 36px;
+.legal-bloque:first-child {
+  padding-top: 0;
+}
+
+.legal-bloque:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.legal-bloque h2 {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  background: rgba(139, 92, 246, 0.12);
-  color: var(--acento-claro);
-  margin-bottom: 0.85rem;
-}
-
-.legal-seccion__icono svg {
-  width: 18px;
-  height: 18px;
-}
-
-.legal-seccion h2 {
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin-bottom: 0.65rem;
-}
-
-.legal-seccion p {
-  color: var(--texto-suave);
-  font-size: 0.9rem;
-  line-height: 1.65;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--texto);
   margin-bottom: 0.75rem;
 }
 
-.legal-seccion p:last-child {
+.legal-bloque h2 svg {
+  width: 17px;
+  height: 17px;
+  color: var(--texto-mudo);
+  flex-shrink: 0;
+}
+
+.legal-bloque p {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1.75;
+  margin-bottom: 0.85rem;
+}
+
+.legal-bloque p:last-child {
   margin-bottom: 0;
+}
+
+.legal-bloque strong {
+  color: var(--texto);
+  font-weight: 500;
 }
 
 .legal-lista {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.5rem;
   margin: 0;
   padding: 0;
 }
 
 .legal-lista li {
   position: relative;
-  padding-left: 1.15rem;
+  padding-left: 1rem;
   color: var(--texto-suave);
-  font-size: 0.88rem;
-  line-height: 1.55;
+  font-size: 0.875rem;
+  line-height: 1.65;
 }
 
 .legal-lista li::before {
-  content: '';
+  content: '—';
   position: absolute;
   left: 0;
-  top: 0.55em;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--acento-claro);
+  top: 0;
+  color: var(--texto-mudo);
+  font-size: 0.75rem;
 }
 
-.legal-contacto {
-  margin-top: 0.5rem;
-  padding: 0.75rem 0.9rem;
-  background: var(--fondo-elevado);
-  border-radius: var(--radio-sm);
-  border: 1px solid var(--borde);
+.legal-nota {
+  margin-top: 1rem !important;
+  padding-top: 1rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.06);
+  font-size: 0.85rem !important;
+  color: var(--texto-mudo) !important;
 }
 
-.legal-contacto a,
+.legal-nota a,
 .legal-pie a {
-  color: var(--acento-claro);
+  color: var(--texto-suave);
   text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  transition: color var(--transicion), border-color var(--transicion);
 }
 
-.legal-contacto a:hover,
+.legal-nota a:hover,
 .legal-pie a:hover {
-  text-decoration: underline;
+  color: var(--texto);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .legal-pie {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
+  margin-top: 2.5rem;
+  padding-top: 1.75rem;
   border-top: 1px solid var(--borde);
-  text-align: center;
 }
 
 .legal-pie p {
-  color: var(--texto-suave);
-  font-size: 0.88rem;
-  margin-bottom: 1rem;
+  color: var(--texto-mudo);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.pie--minimo {
+  padding-top: 1.25rem;
+  padding-bottom: calc(1.25rem + var(--espacio-seguro-inf));
+  border-top-color: rgba(255, 255, 255, 0.04);
+}
+
+.pie__enlaces a[aria-current="page"] {
+  color: var(--texto-mudo);
+  pointer-events: none;
 }
 
 /* Modal */
