@@ -1,0 +1,22 @@
+{
+  "name": "ZonaGrupos",
+  "short_name": "ZonaGrupos",
+  "description": "Grupos de WhatsApp, Telegram y Discord en Latinoamérica",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#0a0a0f",
+  "lang": "es-419",
+  "icons": [
+    {
+      "src": "/img/favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/img/favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

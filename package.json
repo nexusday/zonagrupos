@@ -14,6 +14,7 @@
     "actualizar-clasificacion": "node scripts/actualizar-clasificacion.js",
     "actualizar-correo": "node scripts/actualizar-correo.js",
     "actualizar-correos-contacto": "node scripts/actualizar-correos-contacto.js",
+    "generar-favicons": "php scripts/generar-favicons.php",
     "iniciar-mysql": "node scripts/iniciar-mysql.js"
   },
   "engines": {

@@ -5,6 +5,9 @@
   RewriteEngine On
   RewriteBase /
 
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
   RewriteRule ^og/portada\.png$ og/portada.php [L]
   RewriteRule ^og/grupo/([a-zA-Z0-9_-]+)\.png$ og/grupo.php?slug=$1 [L,QSA]
   RewriteRule ^sitemap\.xml$ sitemap.php [L]

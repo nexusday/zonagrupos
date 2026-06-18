@@ -134,15 +134,17 @@ function jsonLdSitio(?string $base = null): array
         '@id'      => $base . '/#sitio',
         'name'     => 'ZonaGrupos',
         'url'      => $base . '/',
-        'description' => 'Directorio para encontrar y publicar grupos de WhatsApp, Telegram y Discord en Latinoamérica.',
+        'description' => 'Encuentra y publica grupos de WhatsApp, Telegram y Discord en Latinoamérica.',
         'inLanguage' => 'es-419',
         'publisher' => [
             '@type' => 'Organization',
             'name'  => 'ZonaGrupos',
             'url'   => $base . '/',
             'logo'  => [
-                '@type' => 'ImageObject',
-                'url'   => $base . '/img/zonagrupos.png',
+                '@type'  => 'ImageObject',
+                'url'    => $base . '/img/favicon-192.png',
+                'width'  => 192,
+                'height' => 192,
             ],
         ],
         'potentialAction' => [
@@ -271,7 +273,12 @@ function jsonLdInicio(?string $base = null): array
                 '@id'         => $base . '/#organizacion',
                 'name'        => 'ZonaGrupos',
                 'url'         => $base . '/',
-                'logo'        => $base . '/img/zonagrupos.png',
+                'logo'        => [
+                    '@type'  => 'ImageObject',
+                    'url'    => $base . '/img/favicon-192.png',
+                    'width'  => 192,
+                    'height' => 192,
+                ],
                 'description' => 'Directorio de grupos de WhatsApp, Telegram y Discord para la comunidad latina.',
             ],
         ],
@@ -283,8 +290,8 @@ function metaInicio(?string $base = null): array
     $base = $base ?? urlBaseApp();
 
     return [
-        'titulo'       => 'ZonaGrupos — Grupos de WhatsApp, Telegram y Discord',
-        'descripcion'  => 'Directorio de grupos de WhatsApp, Telegram y Discord en Latinoamérica. Busca por tema o país y publica tu enlace de invitación gratis.',
+        'titulo'       => 'Grupos de WhatsApp, Telegram y Discord | ZonaGrupos',
+        'descripcion'  => 'Encuentra y publica grupos de WhatsApp, Telegram y Discord en Latinoamérica. Busca por tema, país o plataforma. ¡Gratis!',
         'keywords'     => 'grupos whatsapp, grupos telegram, grupos discord, enlaces grupos, directorio grupos, comunidades latinoamérica',
         'canonical'    => $base . '/',
         'robots'       => 'index, follow, max-image-preview:large',
@@ -321,6 +328,7 @@ function escMeta(string $texto): string
 
 function emitirMetasPagina(array $meta): void
 {
+    $base = urlBaseApp();
     $titulo = escMeta($meta['titulo'] ?? 'ZonaGrupos');
     $descripcion = escMeta($meta['descripcion'] ?? '');
     $keywords = escMeta($meta['keywords'] ?? '');
@@ -347,9 +355,12 @@ function emitirMetasPagina(array $meta): void
     echo "  <meta name=\"apple-mobile-web-app-status-bar-style\" content=\"black-translucent\">\n";
     echo "  <title>{$titulo}</title>\n";
     echo "  <link rel=\"canonical\" href=\"{$canonical}\">\n";
-    echo "  <link rel=\"sitemap\" type=\"application/xml\" title=\"Sitemap\" href=\"/sitemap.xml\">\n";
-    echo "  <link rel=\"icon\" href=\"/img/zonagrupos.png\" type=\"image/png\">\n";
-    echo "  <link rel=\"apple-touch-icon\" href=\"/img/zonagrupos.png\">\n";
+    echo "  <link rel=\"sitemap\" type=\"application/xml\" title=\"Sitemap\" href=\"{$base}/sitemap.xml\">\n";
+    echo "  <link rel=\"icon\" href=\"{$base}/favicon.ico\" sizes=\"48x48\">\n";
+    echo "  <link rel=\"icon\" type=\"image/png\" sizes=\"48x48\" href=\"{$base}/img/favicon-48.png\">\n";
+    echo "  <link rel=\"icon\" type=\"image/png\" sizes=\"192x192\" href=\"{$base}/img/favicon-192.png\">\n";
+    echo "  <link rel=\"apple-touch-icon\" sizes=\"192x192\" href=\"{$base}/img/favicon-192.png\">\n";
+    echo "  <link rel=\"manifest\" href=\"{$base}/site.webmanifest\">\n";
     echo "  <meta property=\"og:type\" content=\"{$ogType}\">\n";
     echo "  <meta property=\"og:site_name\" content=\"ZonaGrupos\">\n";
     echo "  <meta property=\"og:locale\" content=\"es_419\">\n";
