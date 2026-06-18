@@ -43,7 +43,7 @@ $meta = metaTerminos();
         <p class="legal-cabecera__etiqueta">Transparencia</p>
         <h1>Términos y condiciones</h1>
         <p class="legal-cabecera__intro">
-          Qué datos usamos, por qué y qué no guardamos. Escrito para que cualquiera lo entienda.
+          Qué datos usamos, por qué y qué no guardamos.
         </p>
         <time class="legal-cabecera__fecha" datetime="2026-06">Actualizado · junio 2026</time>
       </header>
