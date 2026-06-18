@@ -1,26 +1,50 @@
 # ZonaGrupos — Repo completo en public_html (git clone / git pull aquí)
-# Los HTML, CSS y JS viven en public/; las URLs siguen siendo /css/, /js/, etc.
+# Todo el sitio (HTML, CSS, JS, imágenes) se sirve desde public/
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
+  # Bloquear carpetas internas del repositorio
+  RewriteRule ^(\.git|base-datos|scripts|logs|node_modules|vendor)(/|$) - [F,L]
+
+  # Bloquear archivos sensibles o de desarrollo en la raíz
+  RewriteRule ^(config\.env|config\.env\.local|sun\.env|package\.json|servidor\.js|enrutador\.php|\.gitignore)$ - [F,L]
+
+  # No exponer la ruta /public/ en la URL
+  RewriteRule ^public/ - [F,L]
+
   # API PHP
   RewriteRule ^api/(.*)$ api/$1 [L,QSA]
 
-  # Estáticos siempre desde public/ (no usar copias viejas en la raíz)
-  RewriteRule ^css/(.*)$ public/css/$1 [L]
-  RewriteRule ^js/(.*)$ public/js/$1 [L]
-  RewriteRule ^img/(.*)$ public/img/$1 [L]
-
-  # Panel admin (ruta debe coincidir con ADMIN_RUTA en sun.env)
+  # Rutas amigables
+  RewriteRule ^grupo/[a-zA-Z0-9_-]+/?$ public/grupo.html [L,QSA]
   RewriteRule ^zg-x7k9m2p/?$ public/zg-x7k9m2p/index.html [L,QSA]
   RewriteRule ^zg-x7k9m2p/(.*)$ public/zg-x7k9m2p/$1 [L,QSA]
 
-  # Página de grupo
-  RewriteRule ^grupo/[a-zA-Z0-9_-]+/?$ public/grupo.html [L,QSA]
-
-  # Inicio
+  # Inicio y HTML sueltos (evita copias viejas en la raíz de public_html)
   RewriteRule ^$ public/index.html [L]
+  RewriteRule ^index\.html$ public/index.html [L,QSA]
+  RewriteRule ^grupo\.html$ public/grupo.html [L,QSA]
+
+  # Todo lo demás que exista en public/ (css, js, img, fuentes, etc.)
+  RewriteCond %{DOCUMENT_ROOT}/public/$1 -f [OR]
+  RewriteCond %{DOCUMENT_ROOT}/public/$1 -d
+  RewriteRule ^(.+)$ public/$1 [L]
+</IfModule>
+
+# Si Apache busca index en la raíz, usar el de public/
+DirectoryIndex public/index.html
+
+<IfModule mod_authz_core.c>
+  <Files "config.env">
+    Require all denied
+  </Files>
+  <Files "config.env.local">
+    Require all denied
+  </Files>
+  <Files "sun.env">
+    Require all denied
+  </Files>
 </IfModule>
 
 Options -Indexes
