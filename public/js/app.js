@@ -62,13 +62,15 @@
     otro: 'https://...',
   };
 
-  function extraerEtiquetas(texto) {
-    const regex = /#([\w\u00C0-\u024F]{2,30})/gu;
+  function parsearEtiquetasInput(texto) {
+    if (!texto?.trim()) return [];
     const unicas = new Set();
-    let coincidencia;
-    while ((coincidencia = regex.exec(texto)) !== null) {
-      unicas.add(coincidencia[1].toLowerCase());
-    }
+    texto.split(/[\s,;]+/).forEach((t) => {
+      const nombre = t.trim().replace(/^#+/, '').toLowerCase();
+      if (nombre.length >= 2 && nombre.length <= 30 && /^[\w\u00C0-\u024F_]+$/u.test(nombre)) {
+        unicas.add(nombre);
+      }
+    });
     return [...unicas];
   }
 
@@ -113,7 +115,7 @@
       const attrs = clickeable
         ? `class="etiqueta-hash" data-etiqueta="${escaparHtml(et.nombre)}" role="button" tabindex="0"`
         : `class="etiqueta-hash etiqueta-hash--solo"`;
-      return `<span ${attrs} style="--color-etiqueta:${color}">#${escaparHtml(et.nombre)}</span>`;
+      return `<span ${attrs} style="--color-etiqueta:${color}">${escaparHtml(et.nombre)}</span>`;
     }).join('');
   }
 
@@ -165,7 +167,7 @@
     estado.etiqueta = nombre;
     estado.busqueda = '';
     estado.pagina = 1;
-    elementos.inputBusqueda.value = `#${nombre}`;
+    elementos.inputBusqueda.value = nombre;
     cargarGrupos();
     document.querySelectorAll('.etiqueta-hash--activa').forEach((el) =>
       el.classList.remove('etiqueta-hash--activa')
@@ -246,9 +248,7 @@
   }
 
   function actualizarPreviaEtiquetas() {
-    const texto = document.getElementById('campo-descripcion').value;
-    const nombre = document.getElementById('campo-nombre').value;
-    const tags = extraerEtiquetas(`${texto} ${nombre}`);
+    const tags = parsearEtiquetasInput(document.getElementById('campo-etiquetas').value);
     elementos.vistaEtiquetasPrevia.innerHTML = tags.length
       ? renderizarEtiquetas(tags.map((n) => ({ nombre: n, color: '#7c3aed' })), false)
       : '';
@@ -306,6 +306,10 @@
     elementos.inputBusqueda.value = busqueda;
     if (busqueda.startsWith('#')) {
       estado.etiqueta = busqueda.slice(1).split(/\s/)[0].toLowerCase();
+      estado.busqueda = '';
+    } else if (busqueda && !busqueda.includes(' ')) {
+      estado.etiqueta = busqueda.toLowerCase();
+      estado.busqueda = '';
     }
     estado.pagina = 1;
   }
@@ -323,10 +327,19 @@
 
     const ejecutarBusqueda = () => {
       const valor = elementos.inputBusqueda.value.trim();
-      estado.busqueda = valor;
-      estado.etiqueta = valor.startsWith('#') ? valor.slice(1).split(/\s/)[0].toLowerCase() : '';
-      if (!valor.startsWith('#')) estado.etiqueta = '';
       estado.pagina = 1;
+
+      if (valor.startsWith('#')) {
+        estado.etiqueta = valor.slice(1).split(/\s/)[0].toLowerCase();
+        estado.busqueda = '';
+      } else if (valor && !valor.includes(' ')) {
+        estado.etiqueta = valor.toLowerCase();
+        estado.busqueda = '';
+      } else {
+        estado.busqueda = valor;
+        estado.etiqueta = '';
+      }
+
       cargarGrupos();
     };
 
@@ -385,12 +398,11 @@
     });
 
     const campoDescripcion = document.getElementById('campo-descripcion');
-    const campoNombre = document.getElementById('campo-nombre');
+    const campoEtiquetas = document.getElementById('campo-etiquetas');
     campoDescripcion.addEventListener('input', (e) => {
       elementos.contadorDescripcion.textContent = e.target.value.length;
-      actualizarPreviaEtiquetas();
     });
-    campoNombre.addEventListener('input', actualizarPreviaEtiquetas);
+    campoEtiquetas.addEventListener('input', actualizarPreviaEtiquetas);
 
     elementos.formulario.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -398,20 +410,28 @@
       btnEnviar.disabled = true;
 
       const descripcion = campoDescripcion.value.trim();
+      const etiquetas = parsearEtiquetasInput(campoEtiquetas.value);
+
       if (!descripcion) {
-        mostrarToast('Agrega una descripción con al menos un #hashtag', 'error');
+        mostrarToast('Agrega una descripción del grupo', 'error');
         btnEnviar.disabled = false;
         return;
       }
-      if (extraerEtiquetas(descripcion).length === 0) {
-        mostrarToast('Incluye al menos un hashtag, ej: #minecraft', 'error');
+      if (etiquetas.length === 0) {
+        mostrarToast('Agrega al menos una etiqueta, ej: gaming, amigos', 'error');
+        btnEnviar.disabled = false;
+        return;
+      }
+      if (etiquetas.length > 10) {
+        mostrarToast('Máximo 10 etiquetas', 'error');
         btnEnviar.disabled = false;
         return;
       }
 
       const datos = {
-        nombre: campoNombre.value.trim(),
+        nombre: document.getElementById('campo-nombre').value.trim(),
         descripcion,
+        etiquetas,
         enlace: document.getElementById('campo-enlace').value.trim(),
         plataforma: document.querySelector('input[name="plataforma"]:checked').value,
         restriccion_pais: document.querySelector('input[name="restriccion_pais"]:checked')?.value || 'todos',

@@ -92,10 +92,10 @@
 
   function renderizarEtiquetas(etiquetas) {
     if (!etiquetas?.length) {
-      return '<p class="grupo-sin-etiquetas">Sin hashtags</p>';
+      return '<p class="grupo-sin-etiquetas">Sin etiquetas</p>';
     }
     return etiquetas.map((e) =>
-      `<a href="/?busqueda=%23${encodeURIComponent(e.nombre)}" class="etiqueta-hash etiqueta-hash--solo" style="--color-etiqueta:${e.color}">#${escaparHtml(e.nombre)}</a>`
+      `<a href="/?busqueda=${encodeURIComponent(e.nombre)}" class="etiqueta-hash etiqueta-hash--solo" style="--color-etiqueta:${e.color}">${escaparHtml(e.nombre)}</a>`
     ).join('');
   }
 
@@ -152,7 +152,7 @@
             </section>
 
             <section class="detalle-bloque">
-              <h2 class="detalle-bloque__titulo"><i data-lucide="hash"></i> Hashtags</h2>
+              <h2 class="detalle-bloque__titulo"><i data-lucide="tags"></i> Etiquetas</h2>
               <div class="detalle-grupo__etiquetas">${renderizarEtiquetas(grupo.etiquetas)}</div>
             </section>
 

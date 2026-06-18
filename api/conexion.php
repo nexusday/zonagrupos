@@ -12,8 +12,9 @@ function obtenerConexion(): PDO
     $config = require __DIR__ . '/configuracion.php';
 
     $dsn = sprintf(
-        'mysql:host=%s;dbname=%s;charset=%s',
+        'mysql:host=%s;port=%d;dbname=%s;charset=%s',
         $config['bd_host'],
+        $config['bd_puerto'] ?? 3306,
         $config['bd_nombre'],
         $config['bd_charset']
     );

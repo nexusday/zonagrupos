@@ -286,8 +286,13 @@ try {
             responderError('La descripción es obligatoria.');
         }
 
-        if (extraerEtiquetas($descripcion . ' ' . $nombre) === []) {
-            responderError('Incluye al menos un hashtag (#ejemplo) en el nombre o descripción.');
+        $etiquetas = normalizarListaEtiquetas($datos['etiquetas'] ?? []);
+        if ($etiquetas === []) {
+            responderError('Agrega al menos una etiqueta (ej: gaming, amigos).');
+        }
+
+        if (count($etiquetas) > 10) {
+            responderError('Máximo 10 etiquetas por grupo.');
         }
 
         if ($enlace === '') {
@@ -314,7 +319,6 @@ try {
         }
 
         $pais = obtenerPaisDesdeIp(obtenerIpCliente());
-        $etiquetas = extraerEtiquetas($descripcion . ' ' . $nombre);
 
         $bd->beginTransaction();
 

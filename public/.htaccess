@@ -1,0 +1,30 @@
+# ZonaGrupos — Apache (Spaceship / cPanel)
+# Sube este archivo junto con index.html, grupo.html, css/, js/ a public_html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # API PHP
+  RewriteRule ^api/(.*)$ api/$1 [L,QSA]
+
+  # Archivos y carpetas reales
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Página individual: /grupo/sunkovv-1 → grupo.html
+  RewriteRule ^grupo/[a-zA-Z0-9_-]+/?$ grupo.html [L,QSA]
+
+  # Inicio
+  RewriteRule ^$ index.html [L]
+</IfModule>
+
+# Tipos MIME
+<IfModule mod_mime.c>
+  AddType application/javascript .js
+  AddType text/css .css
+</IfModule>
+
+# No listar carpetas
+Options -Indexes

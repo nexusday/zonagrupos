@@ -57,7 +57,7 @@
         </h1>
         <p class="hero__subtitulo">
           Descubre grupos de WhatsApp, Telegram y Discord.
-          Usa <strong>#hashtags</strong> en la descripción, como en TikTok.
+          Filtra por <strong>etiquetas</strong> y encuentra tu comunidad.
         </p>
 
         <div class="busqueda" id="busqueda-principal">
@@ -67,7 +67,7 @@
               type="search"
               id="input-busqueda"
               class="busqueda__input"
-              placeholder="Buscar grupos o #minecraft #gaming..."
+              placeholder="Buscar grupos o etiquetas: gaming, amigos..."
               autocomplete="off"
               aria-label="Buscar grupos"
             >
@@ -199,9 +199,16 @@
       <div class="campo">
         <label for="campo-descripcion">Descripción <span class="requerido">*</span></label>
         <textarea id="campo-descripcion" name="descripcion" maxlength="500" rows="3" required
-                  placeholder="Describe tu grupo y agrega hashtags: #minecraft #gaming #latam"></textarea>
-        <span class="campo__ayuda">Los hashtags (#palabra) categorizan tu grupo automáticamente</span>
+                  placeholder="Describe de qué trata tu grupo, quién puede unirse, horarios..."></textarea>
+        <span class="campo__ayuda">Solo texto descriptivo, sin etiquetas aquí</span>
         <span class="campo__contador"><span id="contador-descripcion">0</span>/500</span>
+      </div>
+
+      <div class="campo">
+        <label for="campo-etiquetas">Etiquetas <span class="requerido">*</span></label>
+        <input type="text" id="campo-etiquetas" name="etiquetas" maxlength="200" required
+               placeholder="gaming, amigos, latam" autocomplete="off">
+        <span class="campo__ayuda">Separadas por coma o espacio. Mínimo 1, máximo 10</span>
         <div class="vista-etiquetas" id="vista-etiquetas-previa"></div>
       </div>
 

@@ -17,6 +17,7 @@ function cargarVariablesEntorno(): array
     $raiz = dirname(__DIR__);
     $candidatos = [
         $raiz . '/config.env',
+        $raiz . '/config.env.local',
         $raiz . '/.env',
         __DIR__ . '/config.env',
         __DIR__ . '/.env',
@@ -48,8 +49,6 @@ function cargarVariablesEntorno(): array
                 $_ENV[$clave] = $valor;
             }
         }
-
-        break;
     }
 
     return $variables;

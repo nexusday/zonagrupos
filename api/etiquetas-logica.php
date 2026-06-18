@@ -2,21 +2,34 @@
 declare(strict_types=1);
 
 /**
- * Lógica de hashtags estilo TikTok — extraídos de la descripción.
+ * Etiquetas del grupo — campo separado (no se extraen de la descripción).
  */
-function extraerEtiquetas(string $texto): array
+function normalizarListaEtiquetas(mixed $entrada): array
 {
-    if (!preg_match_all('/#([\p{L}\p{N}_]{2,30})/u', $texto, $coincidencias)) {
+    if (is_string($entrada)) {
+        $entrada = preg_split('/[\s,;]+/', $entrada, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    }
+
+    if (!is_array($entrada)) {
         return [];
     }
 
     $unicas = [];
-    foreach ($coincidencias[1] as $nombre) {
-        $slug = mb_strtolower($nombre, 'UTF-8');
-        $unicas[$slug] = $slug;
+    foreach ($entrada as $item) {
+        $nombre = mb_strtolower(ltrim(trim((string) $item), '#'), 'UTF-8');
+        if ($nombre === '' || !preg_match('/^[\p{L}\p{N}_]{2,30}$/u', $nombre)) {
+            continue;
+        }
+        $unicas[$nombre] = $nombre;
     }
 
     return array_values($unicas);
+}
+
+/** @deprecated Solo compatibilidad; usar normalizarListaEtiquetas */
+function extraerEtiquetas(string $texto): array
+{
+    return normalizarListaEtiquetas($texto);
 }
 
 function colorEtiqueta(string $nombre): string

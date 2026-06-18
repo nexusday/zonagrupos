@@ -5,7 +5,8 @@ declare(strict_types=1);
  * Copia este archivo como config.local.php en el hosting (no se sube a git).
  * Prioridad: config.local.php > config.env > valores por defecto
  *
- * En Spaceship crea api/config.local.php con tus datos del panel MySQL.
+ * phpMyAdmin muestra "localhost:3306" → usa bd_host = localhost (puerto 3306 es el predeterminado).
+ * Nombre exacto de la BD (revisar en el panel): nzoaqaxydg_zonagrupos_db
  */
 
 return [

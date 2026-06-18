@@ -1,0 +1,16 @@
+# ZonaGrupos — Si subes TODO el proyecto a public_html (no solo public/)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  RewriteRule ^api/(.*)$ api/$1 [L,QSA]
+
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  RewriteRule ^grupo/[a-zA-Z0-9_-]+/?$ public/grupo.html [L,QSA]
+  RewriteRule ^$ public/index.html [L]
+</IfModule>
+
+Options -Indexes

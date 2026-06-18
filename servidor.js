@@ -54,16 +54,22 @@ function escribirLogServidor(nivel, mensaje, datos = null) {
 }
 
 function cargarConfigEnv() {
-  const configEnv = path.join(RAIZ, 'config.env');
-  if (!fs.existsSync(configEnv)) return;
+  const archivos = [
+    path.join(RAIZ, 'config.env'),
+    path.join(RAIZ, 'config.env.local'),
+  ];
 
-  fs.readFileSync(configEnv, 'utf8').split('\n').forEach((linea) => {
-    const t = linea.trim();
-    if (!t || t.startsWith('#') || !t.includes('=')) return;
-    const [k, ...v] = t.split('=');
-    const clave = k.trim();
-    const valor = v.join('=').trim();
-    if (!process.env[clave]) process.env[clave] = valor;
+  archivos.forEach((configEnv) => {
+    if (!fs.existsSync(configEnv)) return;
+
+    fs.readFileSync(configEnv, 'utf8').split('\n').forEach((linea) => {
+      const t = linea.trim();
+      if (!t || t.startsWith('#') || !t.includes('=')) return;
+      const [k, ...v] = t.split('=');
+      const clave = k.trim();
+      const valor = v.join('=').trim();
+      process.env[clave] = valor;
+    });
   });
 
   if (process.env.PUERTO) PUERTO = parseInt(process.env.PUERTO, 10) || PUERTO;
@@ -113,22 +119,22 @@ function detectarMysql() {
 }
 
 function verificarMysql() {
-  const host = process.env.BD_HOST || '127.0.0.1';
-  const nombre = process.env.BD_NOMBRE || 'zona_grupos';
-  const usuario = process.env.BD_USUARIO || 'root';
-  const clave = process.env.BD_CLAVE || '';
+  if (!rutaPhp) return false;
 
-  const cliente = detectarMysql();
-  if (!cliente) return false;
-
-  const argsConexion = clave
-    ? `-h${host} -u${usuario} -p${clave} -e "SELECT 1 FROM ${nombre}.grupos LIMIT 1"`
-    : `-h${host} -u${usuario} -e "SELECT 1 FROM ${nombre}.grupos LIMIT 1"`;
+  const script = path.join(RAIZ, 'scripts', 'verificar-bd.php');
+  if (!fs.existsSync(script)) return false;
 
   try {
-    execSync(`${comillas(cliente)} ${argsConexion}`, { stdio: 'pipe', shell: true });
-    return true;
-  } catch {
+    const salida = execSync(`"${rutaPhp}" -f "${script}"`, {
+      env: process.env,
+      stdio: 'pipe',
+      shell: true,
+      windowsHide: true,
+    });
+    return salida.toString().trim() === 'OK';
+  } catch (err) {
+    const detalle = err.stderr?.toString().trim() || err.message;
+    if (detalle) escribirLogServidor('error', 'MySQL', detalle.slice(0, 300));
     return false;
   }
 }
@@ -263,18 +269,28 @@ function manejarSolicitud(req, res) {
 
 cargarConfigEnv();
 rutaPhp = detectarPhp();
-mysqlOk = verificarMysql();
-
-if (!mysqlOk) {
-  console.error('\n  ✗ No se pudo conectar a MySQL.');
-  console.error('    1. Verifica que el servicio esté activo: net start MySQL84');
-  console.error('    2. Revisa config.env (BD_HOST, BD_USUARIO, BD_CLAVE)');
-  console.error('    3. Ejecuta: npm run setup-db\n');
-  process.exit(1);
-}
 
 if (!rutaPhp) {
   console.error('\n  ✗ PHP no detectado. Instálalo con: winget install PHP.PHP.8.3\n');
+  process.exit(1);
+}
+
+mysqlOk = verificarMysql();
+
+if (!mysqlOk) {
+  const host = process.env.BD_HOST || 'localhost';
+  const puerto = process.env.BD_PUERTO || '3306';
+  const nombre = process.env.BD_NOMBRE || 'zona_grupos';
+  console.error('\n  ✗ No se pudo conectar a MySQL.');
+  console.error(`    Host: ${host}:${puerto}  BD: ${nombre}`);
+  console.error('');
+  console.error('  En tu PC, "localhost" es tu máquina, NO el hosting.');
+  console.error('  Para usar la BD de Spaceship en local:');
+  console.error('    1. Copia config.env.local.example → config.env.local');
+  console.error('    2. Pon el host MySQL remoto del panel (o túnel SSH)');
+  console.error('    3. En Spaceship: Remote MySQL → añade tu IP pública');
+  console.error('');
+  console.error('  O usa MySQL local: net start MySQL84 y npm run setup-db\n');
   process.exit(1);
 }
 
@@ -300,7 +316,7 @@ servidor.listen(PUERTO, () => {
   console.log(`  ║  Web:  http://localhost:${PUERTO}             ║`);
   console.log(`  ║  API:  http://localhost:${PUERTO}/api/        ║`);
   console.log(`  ║  PHP:  ${phpCorto.padEnd(28)}  ║`);
-  console.log('  ║  BD:   MySQL                         ║');
+  console.log(`  ║  BD:   ${(process.env.BD_HOST || 'localhost').slice(0, 28).padEnd(28)}  ║`);
   console.log('  ╚══════════════════════════════════════════╝');
   console.log('');
 });

@@ -46,7 +46,8 @@ $leer = static function (string $clave, string $env, string $defecto) use ($conf
 };
 
 return [
-    'bd_host'    => $leer('bd_host', 'BD_HOST', '127.0.0.1'),
+    'bd_host'    => $leer('bd_host', 'BD_HOST', 'localhost'),
+    'bd_puerto'  => (int) ($configLocal['bd_puerto'] ?? envConfig('BD_PUERTO', '3306')),
     'bd_nombre'  => $leer('bd_nombre', 'BD_NOMBRE', 'zona_grupos'),
     'bd_usuario' => $leer('bd_usuario', 'BD_USUARIO', 'root'),
     'bd_clave'   => $configLocal['bd_clave'] ?? envConfig('BD_CLAVE', ''),
