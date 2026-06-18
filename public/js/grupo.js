@@ -72,12 +72,13 @@
       : `${origen}/og/portada.png`;
     const plataforma = nombresPlataforma[grupo.plataforma] || 'WhatsApp';
     const pais = grupo.pais?.nombre || '';
-    const titulo = pais && grupo.pais?.codigo !== 'LAT'
+    const tienePais = pais && Banderas.codigoValido(grupo.pais?.codigo);
+    const titulo = tienePais
       ? `${grupo.nombre} | Grupo de ${plataforma} en ${pais}`
       : `${grupo.nombre} | Grupo de ${plataforma}`;
 
     let desc = `"${grupo.nombre}" es un grupo de ${plataforma}`;
-    if (pais && grupo.pais?.codigo !== 'LAT') desc += ` de ${pais}`;
+    if (tienePais) desc += ` de ${pais}`;
     desc += `. ${grupo.descripcion.slice(0, 120)}`;
     if (grupo.etiquetas?.length) {
       const temas = grupo.etiquetas.slice(0, 4).map((e) => e.nombre).join(', ');
@@ -130,7 +131,7 @@
 
   function renderizarPagina(grupo) {
     const restriccionTexto = grupo.restriccion_pais === 'solo_pais'
-      ? `Solo ${grupo.pais.nombre}`
+      ? (grupo.pais?.nombre ? `Solo ${grupo.pais.nombre}` : 'Solo tu país')
       : 'Abierto para todos';
 
     const restriccionIcono = grupo.restriccion_pais === 'solo_pais' ? 'shield' : 'globe-2';
@@ -278,15 +279,9 @@
     `;
   }
 
-  function emojiBandera(codigo) {
-    const c = (codigo || '').toUpperCase();
-    if (!/^[A-Z]{2}$/.test(c) || c === 'LA') return null;
-    return String.fromCodePoint(...[...c].map((l) => 0x1F1E6 - 65 + l.charCodeAt(0)));
-  }
-
   function crearTarjetaRelacionada(g) {
     const paisHtml = g.restriccion_pais === 'solo_pais'
-      ? `<span class="tarjeta-lista__bandera">${emojiBandera(g.pais?.codigo) || '📍'}</span>`
+      ? `<span class="tarjeta-lista__bandera">${Banderas.htmlOMapa(g.pais?.codigo)}</span>`
       : '<i data-lucide="globe" class="tarjeta-lista__flecha"></i>';
     return `
       <a href="${escaparHtml(g.url)}" class="tarjeta-lista tarjeta-lista--compacta" role="listitem">

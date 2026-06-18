@@ -970,8 +970,37 @@ main {
 }
 
 .tarjeta-lista__bandera {
-  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
   line-height: 1;
+}
+
+.bandera-icono {
+  display: block;
+  width: 20px;
+  height: 15px;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.bandera-icono--badge {
+  width: 18px;
+  height: 13px;
+}
+
+.bandera-icono--fallback {
+  width: 14px;
+  height: 14px;
+  color: var(--acento);
+  flex-shrink: 0;
+}
+
+.badge-pais__bandera {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .tarjeta-lista__pais-texto {

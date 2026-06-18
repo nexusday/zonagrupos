@@ -38,6 +38,7 @@ function generarSlug(string $nombre, int $id): string
 function mapearGrupo(array $fila, array $etiquetas = [], bool $incluirEnlace = false, ?array $paisVisitante = null): array
 {
     $slug = $fila['slug'] ?? ('grupo-' . $fila['id']);
+    $pais = normalizarPais($fila['pais_codigo'] ?? '', $fila['pais_nombre'] ?? '');
     $grupo = [
         'id'               => (int) $fila['id'],
         'slug'             => $slug,
@@ -48,10 +49,7 @@ function mapearGrupo(array $fila, array $etiquetas = [], bool $incluirEnlace = f
         'likes'            => (int) $fila['likes'],
         'visitas'          => (int) $fila['visitas'],
         'etiquetas'        => $etiquetas,
-        'pais'             => [
-            'codigo' => $fila['pais_codigo'] ?? 'LAT',
-            'nombre' => $fila['pais_nombre'] ?? 'Latinoamérica',
-        ],
+        'pais'             => $pais,
         'restriccion_pais' => $fila['restriccion_pais'] ?? 'todos',
         'clasificacion'    => $fila['clasificacion'] ?? 'normal',
         'clasificacion_etiqueta' => etiquetaClasificacion($fila['clasificacion'] ?? 'normal'),
@@ -372,7 +370,8 @@ try {
             responderError('Ese enlace ya está registrado.');
         }
 
-        $pais = obtenerPaisVisitante();
+        $visitante = obtenerPaisVisitante();
+        $pais = normalizarPais($visitante['codigo'] ?? '', $visitante['nombre'] ?? '');
 
         $bd->beginTransaction();
 

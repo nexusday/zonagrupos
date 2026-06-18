@@ -99,11 +99,16 @@ const VisitanteGeo = (() => {
     };
   }
 
-  function mostrarEnElemento(badge, nombrePais) {
+  function mostrarEnElemento(badge, nombrePais, codigoPais) {
     if (!badge) return;
     badge.hidden = false;
     const texto = badge.querySelector('#texto-pais, .badge-pais__texto');
     if (texto) texto.textContent = nombrePais;
+    const slot = badge.querySelector('.badge-pais__bandera');
+    if (slot && typeof Banderas !== 'undefined') {
+      slot.innerHTML = Banderas.html(codigoPais, 'bandera-icono--badge')
+        || '<i data-lucide="map-pin" class="bandera-icono--fallback" aria-hidden="true"></i>';
+    }
   }
 
   async function iniciarBadge(idBadge = 'badge-pais') {
@@ -113,7 +118,8 @@ const VisitanteGeo = (() => {
     try {
       const datos = await detectar();
       const nombre = datos.pais?.nombre || 'Desconocido';
-      mostrarEnElemento(badge, nombre);
+      const codigo = datos.pais?.codigo || '';
+      mostrarEnElemento(badge, nombre, codigo);
       badge.title = datos.fuente
         ? `Detectado por IP (${datos.fuente})`
         : 'País detectado por IP';

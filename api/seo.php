@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/cargar-config.php';
+require_once __DIR__ . '/geo.php';
 
 function urlBaseApp(): string
 {
@@ -40,7 +41,7 @@ function construirTituloGrupo(array $grupo): string
     $plataforma = nombrePlataformaSeo($grupo['plataforma'] ?? 'whatsapp');
     $pais = trim($grupo['pais_nombre'] ?? '');
 
-    if ($pais !== '' && strtoupper($grupo['pais_codigo'] ?? '') !== 'LAT') {
+    if ($pais !== '' && codigoPaisReal($grupo['pais_codigo'] ?? '')) {
         return "{$nombre} | Grupo de {$plataforma} en {$pais}";
     }
 
@@ -51,11 +52,11 @@ function construirDescripcionGrupo(array $grupo, array $etiquetas = []): string
 {
     $nombre = trim($grupo['nombre'] ?? 'Grupo');
     $plataforma = nombrePlataformaSeo($grupo['plataforma'] ?? 'whatsapp');
-    $pais = trim($grupo['pais_nombre'] ?? 'Latinoamérica');
+    $pais = trim($grupo['pais_nombre'] ?? '');
     $descripcion = trim($grupo['descripcion'] ?? '');
 
     $intro = "\"{$nombre}\" es un grupo de {$plataforma}";
-    if ($pais !== '' && strtoupper($grupo['pais_codigo'] ?? '') !== 'LAT') {
+    if ($pais !== '' && codigoPaisReal($grupo['pais_codigo'] ?? '')) {
         $intro .= " de {$pais}";
     }
     $intro .= '.';
@@ -87,7 +88,7 @@ function construirKeywordsGrupo(array $grupo, array $etiquetas = []): string
         'unirse grupo ' . $plataforma,
     ];
 
-    if ($pais !== '' && strtoupper($grupo['pais_codigo'] ?? '') !== 'LAT') {
+    if ($pais !== '' && codigoPaisReal($grupo['pais_codigo'] ?? '')) {
         $base[] = 'grupos ' . $plataforma . ' ' . mb_strtolower($pais);
     }
 

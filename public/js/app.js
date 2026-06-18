@@ -260,18 +260,11 @@
     }
   }
 
-  function emojiBandera(codigo) {
-    const c = (codigo || '').toUpperCase();
-    if (!/^[A-Z]{2}$/.test(c) || c === 'LA') return null;
-    return String.fromCodePoint(...[...c].map((l) => 0x1F1E6 - 65 + l.charCodeAt(0)));
-  }
-
   function renderizarPaisListado(grupo) {
     if (grupo.restriccion_pais === 'solo_pais') {
-      const flag = emojiBandera(grupo.pais?.codigo) || '📍';
       const nombre = grupo.pais?.nombre || 'País';
       return `<span class="tarjeta-lista__pais" title="Solo ${escaparHtml(nombre)}">
-        <span class="tarjeta-lista__bandera" aria-hidden="true">${flag}</span>
+        <span class="tarjeta-lista__bandera" aria-hidden="true">${Banderas.htmlOMapa(grupo.pais?.codigo)}</span>
         <span class="tarjeta-lista__pais-texto">${escaparHtml(nombre)}</span>
       </span>`;
     }

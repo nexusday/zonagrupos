@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/api/entorno.php';
 require_once dirname(__DIR__, 2) . '/api/conexion.php';
+require_once dirname(__DIR__, 2) . '/api/geo.php';
 require_once dirname(__DIR__, 2) . '/api/seo.php';
 require_once dirname(__DIR__, 2) . '/api/og-render.php';
 
@@ -33,9 +34,8 @@ try {
     }
 
     $pais = trim($grupo['pais_nombre'] ?? '');
-    if (strtoupper($grupo['pais_codigo'] ?? '') === 'LAT') {
-        $pais = '';
-    }
+    $paisNorm = normalizarPais($grupo['pais_codigo'] ?? '', $pais);
+    $pais = $paisNorm['nombre'];
 
     ogGenerarGrupo(
         (string) $grupo['nombre'],

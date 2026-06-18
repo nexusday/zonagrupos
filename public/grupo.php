@@ -79,7 +79,7 @@ if ($slug !== '') {
       </a>
       <nav class="navegacion">
         <span class="badge-pais" id="badge-pais" hidden title="Tu país detectado por IP">
-          <i data-lucide="map-pin"></i>
+          <span class="badge-pais__bandera" aria-hidden="true"></span>
           <span class="badge-pais__texto" id="texto-pais">—</span>
         </span>
         <a href="/" class="btn btn--fantasma"><i data-lucide="arrow-left"></i> Volver</a>
@@ -180,6 +180,7 @@ if ($slug !== '') {
   </dialog>
 
   <script src="/js/api.js"></script>
+  <script src="/js/banderas.js"></script>
   <script src="/js/geo.js"></script>
   <script src="/js/grupo.js"></script>
 </body>

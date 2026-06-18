@@ -34,7 +34,7 @@ $meta = metaInicio();
 
       <nav class="navegacion" aria-label="Principal">
         <span class="badge-pais" id="badge-pais" hidden title="Tu país detectado por IP">
-          <i data-lucide="map-pin"></i>
+          <span class="badge-pais__bandera" aria-hidden="true"></span>
           <span class="badge-pais__texto" id="texto-pais">—</span>
         </span>
         <button class="btn btn--fantasma btn--icono" id="btn-buscar-movil" aria-label="Buscar">
@@ -316,6 +316,7 @@ $meta = metaInicio();
   <div class="toast-contenedor" id="toast-contenedor" aria-live="polite"></div>
 
   <script src="/js/api.js"></script>
+  <script src="/js/banderas.js"></script>
   <script src="/js/geo.js"></script>
   <script src="/js/app.js"></script>
 </body>

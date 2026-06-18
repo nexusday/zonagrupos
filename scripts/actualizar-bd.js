@@ -61,8 +61,8 @@ SET @existe = (SELECT COUNT(*) FROM information_schema.COLUMNS
 SET @sql = IF(@existe=0,
   'ALTER TABLE grupos
     ADD COLUMN slug VARCHAR(150) NULL AFTER nombre,
-    ADD COLUMN pais_codigo VARCHAR(5) NOT NULL DEFAULT ''LAT'' AFTER plataforma,
-    ADD COLUMN pais_nombre VARCHAR(80) NOT NULL DEFAULT ''Latinoamérica'' AFTER pais_codigo,
+    ADD COLUMN pais_codigo VARCHAR(5) NOT NULL DEFAULT '''' AFTER plataforma,
+    ADD COLUMN pais_nombre VARCHAR(80) NOT NULL DEFAULT '''' AFTER pais_codigo,
     ADD COLUMN restriccion_pais ENUM(''todos'',''solo_pais'') NOT NULL DEFAULT ''todos'' AFTER pais_nombre,
     ADD UNIQUE KEY uq_slug (slug)',
   'SELECT 1');
@@ -88,6 +88,14 @@ try {
     console.log(`\n→ ${etiqueta}...`);
     execSync(`node "${path.join(__dirname, script)}"`, { stdio: 'inherit', shell: true });
   }
+
+  function ejecutarSqlArchivo(archivo, etiqueta) {
+    const ruta = path.join(__dirname, '..', 'base-datos', archivo);
+    if (!fs.existsSync(ruta)) return;
+    ejecutarSql(fs.readFileSync(ruta, 'utf8'), etiqueta);
+  }
+
+  ejecutarSqlArchivo('actualizar-v8-pais-global.sql', 'v8 país global');
 
   console.log('\n✓ Base de datos actualizada (todas las migraciones).');
 } catch {

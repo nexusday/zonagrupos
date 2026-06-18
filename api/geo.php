@@ -76,18 +76,18 @@ function consultarIpApi(?string $ip = null): array
     $respuesta = @file_get_contents($url, false, $contexto);
 
     if ($respuesta === false) {
-        return ['codigo' => 'LAT', 'nombre' => 'Latinoamérica'];
+        return ['codigo' => '', 'nombre' => 'Desconocido'];
     }
 
     $datos = json_decode($respuesta, true);
     if (!is_array($datos) || ($datos['status'] ?? '') !== 'success') {
-        return ['codigo' => 'LAT', 'nombre' => 'Latinoamérica'];
+        return ['codigo' => '', 'nombre' => 'Desconocido'];
     }
 
-    $pais = [
-        'codigo' => strtoupper($datos['countryCode'] ?? 'LAT'),
-        'nombre' => $datos['country'] ?? 'Desconocido',
-    ];
+    $pais = normalizarPais(
+        strtoupper($datos['countryCode'] ?? ''),
+        $datos['country'] ?? 'Desconocido'
+    );
 
     $ipReal = $datos['query'] ?? $ip ?? $claveCache;
     guardarCacheGeo((string) $ipReal, $pais);
@@ -132,6 +132,42 @@ function obtenerPaisVisitante(): array
     }
 
     return obtenerPaisDesdeIp($ip);
+}
+
+/** Código ISO real (2 letras). Excluye LAT usado antes como “Latinoamérica”. */
+function codigoPaisReal(?string $codigo): bool
+{
+    $c = strtoupper(trim($codigo ?? ''));
+
+    return $c !== ''
+        && $c !== 'LAT'
+        && (bool) preg_match('/^[A-Z]{2}$/', $c);
+}
+
+/** Limpia pseudo-país LAT/Latinoamérica y deja solo códigos ISO válidos. */
+function normalizarPais(string $codigo = '', string $nombre = ''): array
+{
+    $codigo = strtoupper(trim($codigo));
+    $nombre = trim($nombre);
+
+    if ($codigo === 'LAT'
+        || strcasecmp($nombre, 'Latinoamérica') === 0
+        || strcasecmp($nombre, 'Latinoamerica') === 0) {
+        return ['codigo' => '', 'nombre' => ''];
+    }
+
+    if (!codigoPaisReal($codigo)) {
+        $codigo = '';
+    }
+
+    if ($codigo === '' && ($nombre === '' || $nombre === 'Desconocido')) {
+        return ['codigo' => '', 'nombre' => ''];
+    }
+
+    return [
+        'codigo' => $codigo,
+        'nombre' => $nombre !== '' ? $nombre : ($codigo !== '' ? $codigo : ''),
+    ];
 }
 
 function puedeUnirseAlGrupo(array $grupo, array $paisVisitante): bool
