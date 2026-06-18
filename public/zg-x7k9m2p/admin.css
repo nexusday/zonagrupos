@@ -1,0 +1,191 @@
+/* Panel admin ZonaGrupos */
+:root {
+  --fondo: #0a0a0f;
+  --card: #12121a;
+  --borde: rgba(255,255,255,.08);
+  --texto: #f0f0f5;
+  --suave: #9494a8;
+  --acento: #7c3aed;
+  --rojo: #ef4444;
+  --verde: #22c55e;
+  --fuente: 'Outfit', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--fuente);
+  background: var(--fondo);
+  color: var(--texto);
+  min-height: 100vh;
+}
+
+.admin-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.admin-login[hidden],
+.admin-panel[hidden] {
+  display: none !important;
+}
+
+.admin-login__caja {
+  width: 100%;
+  max-width: 380px;
+  background: var(--card);
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-login__caja h1 { font-size: 1.5rem; }
+.admin-login__sub { color: var(--suave); font-size: .9rem; margin-bottom: .5rem; }
+
+.admin-login__caja label {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  font-size: .85rem;
+  color: var(--suave);
+}
+
+.admin-login__caja input {
+  padding: .65rem .75rem;
+  border-radius: 10px;
+  border: 1px solid var(--borde);
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: inherit;
+}
+
+.admin-error { color: var(--rojo); font-size: .85rem; }
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: .6rem 1rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: .9rem;
+}
+
+.btn--primario { background: var(--acento); color: #fff; }
+.btn--fantasma { background: transparent; color: var(--suave); border: 1px solid var(--borde); }
+.btn--peligro { background: rgba(239,68,68,.15); color: #fca5a5; border: 1px solid rgba(239,68,68,.3); }
+.btn--ok { background: rgba(34,197,94,.15); color: #86efac; border: 1px solid rgba(34,197,94,.3); }
+.btn--mini { padding: .35rem .55rem; font-size: .75rem; }
+
+.admin-panel { max-width: 1200px; margin: 0 auto; padding: 1.25rem; }
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.admin-header__acciones { display: flex; gap: .5rem; }
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: .75rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-stat {
+  background: var(--card);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.admin-stat strong { display: block; font-size: 1.5rem; }
+.admin-stat span { font-size: .75rem; color: var(--suave); text-transform: uppercase; }
+
+.admin-tabs { display: flex; gap: .5rem; margin-bottom: 1rem; }
+
+.admin-tab {
+  background: var(--card);
+  border: 1px solid var(--borde);
+  color: var(--suave);
+  padding: .55rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+}
+
+.admin-tab--activo { background: var(--acento); color: #fff; border-color: var(--acento); }
+
+.admin-badge {
+  background: var(--rojo);
+  color: #fff;
+  font-size: .7rem;
+  padding: .1rem .4rem;
+  border-radius: 999px;
+  margin-left: .25rem;
+}
+
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.admin-toolbar select {
+  margin-left: .5rem;
+  padding: .4rem .5rem;
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--texto);
+  border: 1px solid var(--borde);
+}
+
+.admin-check { font-size: .9rem; color: var(--suave); display: flex; align-items: center; gap: .4rem; }
+
+.admin-tabla-wrap { overflow-x: auto; border: 1px solid var(--borde); border-radius: 12px; }
+
+.admin-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .85rem;
+}
+
+.admin-tabla th,
+.admin-tabla td {
+  padding: .75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--borde);
+}
+
+.admin-tabla th { color: var(--suave); font-weight: 600; background: var(--card); }
+
+.admin-tabla tr.inactivo { opacity: .55; }
+
+.admin-tabla a { color: var(--acento); text-decoration: none; }
+.admin-tabla a:hover { text-decoration: underline; }
+
+.admin-acciones-celda { display: flex; flex-wrap: wrap; gap: .35rem; }
+
+.badge-reporte {
+  background: rgba(239,68,68,.2);
+  color: #fca5a5;
+  padding: .15rem .45rem;
+  border-radius: 6px;
+  font-size: .75rem;
+  font-weight: 700;
+}

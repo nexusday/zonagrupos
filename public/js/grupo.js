@@ -95,7 +95,7 @@
       return '<p class="grupo-sin-etiquetas">Sin etiquetas</p>';
     }
     return etiquetas.map((e) =>
-      `<a href="/?busqueda=${encodeURIComponent(e.nombre)}" class="etiqueta-hash etiqueta-hash--solo" style="--color-etiqueta:${e.color}">${escaparHtml(e.nombre)}</a>`
+      `<a href="/?busqueda=${encodeURIComponent(e.nombre)}" class="etiqueta etiqueta--solo">${escaparHtml(e.nombre)}</a>`
     ).join('');
   }
 
@@ -195,6 +195,9 @@
               <button class="btn btn--fantasma" id="btn-compartir" type="button">
                 <i data-lucide="share-2"></i> Compartir
               </button>
+              <button class="btn btn--fantasma btn--reportar" id="btn-reportar" type="button">
+                <i data-lucide="flag"></i> Reportar
+              </button>
             </div>
           </article>
         </div>
@@ -235,18 +238,23 @@
     `;
   }
 
+  function emojiBandera(codigo) {
+    const c = (codigo || '').toUpperCase();
+    if (!/^[A-Z]{2}$/.test(c) || c === 'LA') return null;
+    return String.fromCodePoint(...[...c].map((l) => 0x1F1E6 - 65 + l.charCodeAt(0)));
+  }
+
   function crearTarjetaRelacionada(g) {
+    const paisHtml = g.restriccion_pais === 'solo_pais'
+      ? `<span class="tarjeta-lista__bandera">${emojiBandera(g.pais?.codigo) || '📍'}</span>`
+      : '<i data-lucide="globe" class="tarjeta-lista__flecha"></i>';
     return `
-      <a href="${escaparHtml(g.url)}" class="tarjeta-relacionada" role="listitem">
-        <span class="badge-plataforma badge-plataforma--${g.plataforma}">
+      <a href="${escaparHtml(g.url)}" class="tarjeta-lista tarjeta-lista--compacta" role="listitem">
+        <span class="tarjeta-lista__plataforma tarjeta-lista__plataforma--${g.plataforma}">
           <i data-lucide="${iconosPlataforma[g.plataforma]}"></i>
         </span>
-        <h3>${escaparHtml(g.nombre)}</h3>
-        <p>${escaparHtml(g.descripcion)}</p>
-        <div class="tarjeta-relacionada__stats">
-          <span><i data-lucide="heart"></i> ${formatearNumero(g.likes)}</span>
-          <span><i data-lucide="eye"></i> ${formatearNumero(g.visitas)}</span>
-        </div>
+        <span class="tarjeta-lista__nombre">${escaparHtml(g.nombre)}</span>
+        ${paisHtml}
       </a>
     `;
   }
@@ -288,6 +296,37 @@
     mostrarToast('¡Gracias por tu like!');
   }
 
+  function copiarTexto(texto) {
+    if (navigator.clipboard?.writeText) {
+      return navigator.clipboard.writeText(texto);
+    }
+    return new Promise((resolve, reject) => {
+      const ta = document.createElement('textarea');
+      ta.value = texto;
+      ta.style.cssText = 'position:fixed;left:-9999px;top:0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try {
+        document.execCommand('copy') ? resolve() : reject(new Error('copy failed'));
+      } catch (err) {
+        reject(err);
+      } finally {
+        ta.remove();
+      }
+    });
+  }
+
+  async function compartirGrupo() {
+    const url = `${window.location.origin}${grupoActual.url}`;
+    try {
+      await copiarTexto(url);
+      mostrarToast('Enlace copiado al portapapeles');
+    } catch {
+      mostrarToast('No se pudo copiar el enlace', 'error');
+    }
+  }
+
   function enlazarAcciones() {
     const unirseBtns = ['btn-unirse', 'btn-unirse-sidebar', 'btn-unirse-fijo'];
     unirseBtns.forEach((id) => {
@@ -307,17 +346,26 @@
       catch (err) { mostrarToast(err.message, 'error'); }
     });
 
-    document.getElementById('btn-compartir')?.addEventListener('click', async () => {
-      const url = window.location.href;
+    document.getElementById('btn-compartir')?.addEventListener('click', () => {
+      compartirGrupo();
+    });
+
+    const modalReporte = document.getElementById('modal-reporte');
+    document.getElementById('btn-reportar')?.addEventListener('click', () => modalReporte?.showModal());
+    document.getElementById('btn-cerrar-reporte')?.addEventListener('click', () => modalReporte?.close());
+    document.getElementById('btn-cancelar-reporte')?.addEventListener('click', () => modalReporte?.close());
+    document.getElementById('form-reporte')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
       try {
-        if (navigator.share) {
-          await navigator.share({ title: grupoActual.nombre, url });
-        } else {
-          await navigator.clipboard.writeText(url);
-          mostrarToast('Enlace copiado al portapapeles');
-        }
-      } catch {
-        mostrarToast('No se pudo compartir', 'error');
+        await ApiGrupos.reportarGrupo({
+          grupo_id: grupoActual.id,
+          motivo: document.getElementById('reporte-motivo').value,
+          detalle: document.getElementById('reporte-detalle').value.trim(),
+        });
+        modalReporte.close();
+        mostrarToast('Reporte enviado. Gracias.');
+      } catch (err) {
+        mostrarToast(err.message, 'error');
       }
     });
   }

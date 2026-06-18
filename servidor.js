@@ -75,6 +75,27 @@ function cargarConfigEnv() {
   if (process.env.PUERTO) PUERTO = parseInt(process.env.PUERTO, 10) || PUERTO;
 }
 
+function cargarSunEnv() {
+  const sunEnv = path.join(RAIZ, 'sun.env');
+  if (!fs.existsSync(sunEnv)) return;
+  fs.readFileSync(sunEnv, 'utf8').split('\n').forEach((linea) => {
+    const t = linea.trim();
+    if (!t || t.startsWith('#') || !t.includes('=')) return;
+    const [k, ...v] = t.split('=');
+    process.env[k.trim()] = v.join('=').trim();
+  });
+}
+
+function rutaPanelAdmin() {
+  const ruta = (process.env.ADMIN_RUTA || 'zg-x7k9m2p').replace(/^\/+|\/+$/g, '');
+  return `/${ruta}`;
+}
+
+function carpetaPanelAdmin() {
+  const nombre = (process.env.ADMIN_RUTA || 'zg-x7k9m2p').replace(/^\/+|\/+$/g, '');
+  return path.join(CARPETA_PUBLICA, nombre);
+}
+
 function comillas(ruta) {
   return ruta.includes(' ') ? `"${ruta}"` : ruta;
 }
@@ -151,6 +172,7 @@ function ejecutarPhp(archivoPhp, req, res) {
         CONTENT_TYPE: req.headers['content-type'] || '',
         HTTP_ORIGIN: req.headers.origin || '',
         HTTP_USER_AGENT: req.headers['user-agent'] || '',
+        HTTP_X_ADMIN_TOKEN: req.headers['x-admin-token'] || '',
         REMOTE_ADDR: req.socket.remoteAddress || '127.0.0.1',
         JSON_CUERPO: cuerpoEntrada,
       };
@@ -250,6 +272,21 @@ function manejarSolicitud(req, res) {
     return;
   }
 
+  const panelBase = rutaPanelAdmin();
+  const panelDir = carpetaPanelAdmin();
+  if (ruta === panelBase || ruta === `${panelBase}/`) {
+    servirEstatico(path.join(panelDir, 'index.html'), res);
+    return;
+  }
+  if (ruta.startsWith(`${panelBase}/`)) {
+    const sub = ruta.slice(panelBase.length + 1);
+    const archivoPanel = path.join(panelDir, sub);
+    if (archivoPanel.startsWith(panelDir) && fs.existsSync(archivoPanel)) {
+      servirEstatico(archivoPanel, res);
+      return;
+    }
+  }
+
   if (ruta === '/') ruta = '/index.html';
 
   const archivo = path.join(CARPETA_PUBLICA, ruta);
@@ -268,6 +305,7 @@ function manejarSolicitud(req, res) {
 }
 
 cargarConfigEnv();
+cargarSunEnv();
 rutaPhp = detectarPhp();
 
 if (!rutaPhp) {

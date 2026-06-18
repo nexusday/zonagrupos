@@ -52,6 +52,16 @@ const ApiGrupos = (() => {
       return solicitar(`/etiquetas.php?accion=tendencia&limite=${limite}`);
     },
 
+    buscarEtiquetas(q, limite = 8) {
+      return solicitar(`/etiquetas.php?accion=buscar&q=${encodeURIComponent(q)}&limite=${limite}`);
+    },
+
+    explorarEtiquetas({ q = '', pagina = 1, porPagina = 24 } = {}) {
+      const params = new URLSearchParams({ accion: 'explorar', pagina, por_pagina: porPagina });
+      if (q) params.set('q', q);
+      return solicitar(`/etiquetas.php?${params}`);
+    },
+
     crearGrupo(datos) {
       return solicitar('/grupos.php?accion=crear', {
         method: 'POST',
@@ -70,6 +80,13 @@ const ApiGrupos = (() => {
       return solicitar('/grupos.php?accion=like', {
         method: 'POST',
         body: JSON.stringify({ grupo_id: grupoId }),
+      });
+    },
+
+    reportarGrupo(datos) {
+      return solicitar('/reportes.php?accion=crear', {
+        method: 'POST',
+        body: JSON.stringify(datos),
       });
     },
 

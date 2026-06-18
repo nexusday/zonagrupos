@@ -30,16 +30,23 @@
     inputBusqueda: document.getElementById('input-busqueda'),
     selectOrden: document.getElementById('select-orden'),
     statGrupos: document.getElementById('stat-grupos'),
-    statLikes: document.getElementById('stat-likes'),
-    statVisitas: document.getElementById('stat-visitas'),
     modal: document.getElementById('modal-publicar'),
     formulario: document.getElementById('formulario-grupo'),
     contadorDescripcion: document.getElementById('contador-descripcion'),
     vistaEtiquetasPrevia: document.getElementById('vista-etiquetas-previa'),
-    tendencias: document.getElementById('tendencias'),
-    listaTendencias: document.getElementById('lista-tendencias'),
+    sugerenciasBusqueda: document.getElementById('sugerencias-busqueda'),
+    filtroActivo: document.getElementById('filtro-activo'),
+    filtroActivoTexto: document.getElementById('filtro-activo-texto'),
+    tituloListado: document.getElementById('titulo-listado'),
+    explorarTemas: document.getElementById('explorar-temas'),
+    gridEtiquetas: document.getElementById('grid-etiquetas'),
+    inputExplorarEtiquetas: document.getElementById('input-explorar-etiquetas'),
+    infoExplorarEtiquetas: document.getElementById('info-explorar-etiquetas'),
+    btnMasEtiquetas: document.getElementById('btn-mas-etiquetas'),
     toastContenedor: document.getElementById('toast-contenedor'),
   };
+
+  const explorarEtiquetasEstado = { pagina: 1, q: '', total: 0, cargado: false };
 
   const iconosPlataforma = {
     whatsapp: 'message-circle',
@@ -108,56 +115,130 @@
     elementos.paginacion.hidden = vacio || error;
   }
 
-  function renderizarEtiquetas(etiquetas, clickeable = true) {
+  function renderizarEtiquetas(etiquetas, clickeable = true, mostrarUsos = false) {
     if (!etiquetas?.length) return '';
     return etiquetas.map((et) => {
-      const color = et.color || '#7c3aed';
       const attrs = clickeable
-        ? `class="etiqueta-hash" data-etiqueta="${escaparHtml(et.nombre)}" role="button" tabindex="0"`
-        : `class="etiqueta-hash etiqueta-hash--solo"`;
-      return `<span ${attrs} style="--color-etiqueta:${color}">${escaparHtml(et.nombre)}</span>`;
+        ? `class="etiqueta" data-etiqueta="${escaparHtml(et.nombre)}" role="button" tabindex="0"`
+        : `class="etiqueta etiqueta--solo"`;
+      const usos = mostrarUsos && et.usos ? `<span class="etiqueta__usos">${formatearNumero(et.usos)}</span>` : '';
+      return `<span ${attrs}>${escaparHtml(et.nombre)}${usos}</span>`;
     }).join('');
   }
 
-  function crearTarjetaGrupo(grupo, indice) {
-    const tarjeta = document.createElement('article');
-    tarjeta.className = 'tarjeta-grupo';
-    tarjeta.role = 'listitem';
-    tarjeta.style.animationDelay = `${indice * 0.05}s`;
+  function renderizarEtiquetaEnlace(et) {
+    return `<a href="/?busqueda=${encodeURIComponent(et.nombre)}" class="etiqueta etiqueta--enlace" role="listitem">
+      <span class="etiqueta__nombre">${escaparHtml(et.nombre)}</span>
+      <span class="etiqueta__usos">${formatearNumero(et.usos || 0)}</span>
+    </a>`;
+  }
 
-    const etiquetasHtml = grupo.etiquetas?.length
-      ? `<div class="tarjeta-grupo__etiquetas">${renderizarEtiquetas(grupo.etiquetas)}</div>`
-      : '';
+  function actualizarFiltroActivo() {
+    const partes = [];
+    if (estado.etiqueta) partes.push(`tema: ${estado.etiqueta}`);
+    if (estado.busqueda) partes.push(`"${estado.busqueda}"`);
+    if (estado.plataforma) {
+      partes.push(nombresPlataforma[estado.plataforma] || estado.plataforma);
+    }
+
+    if (partes.length) {
+      elementos.filtroActivoTexto.textContent = partes.join(' · ');
+      elementos.filtroActivo.hidden = false;
+    } else {
+      elementos.filtroActivo.hidden = true;
+    }
+
+    const titulos = {
+      recientes: 'Grupos recientes',
+      populares: 'Grupos populares',
+      visitas: 'Más visitados',
+    };
+    let titulo = titulos[estado.orden] || 'Grupos';
+    if (estado.etiqueta) titulo = `Tema: ${estado.etiqueta}`;
+    else if (estado.busqueda) titulo = `Resultados: ${estado.busqueda}`;
+    elementos.tituloListado.textContent = titulo;
+  }
+
+  function limpiarFiltros() {
+    estado.busqueda = '';
+    estado.etiqueta = '';
+    estado.pagina = 1;
+    elementos.inputBusqueda.value = '';
+    ocultarSugerencias();
+    document.querySelectorAll('.chip[data-plataforma]').forEach((c) => {
+      c.classList.toggle('chip--activo', c.dataset.plataforma === '');
+    });
+    estado.plataforma = '';
+    actualizarFiltroActivo();
+    cargarGrupos();
+  }
+
+  function ocultarSugerencias() {
+    elementos.sugerenciasBusqueda.hidden = true;
+    elementos.inputBusqueda.setAttribute('aria-expanded', 'false');
+    elementos.sugerenciasBusqueda.innerHTML = '';
+  }
+
+  async function mostrarSugerenciasEtiquetas(termino) {
+    if (!termino || termino.length < 2 || termino.includes(' ')) {
+      ocultarSugerencias();
+      return;
+    }
+    try {
+      const { etiquetas } = await ApiGrupos.buscarEtiquetas(termino.replace(/^#/, ''), 6);
+      if (!etiquetas.length) {
+        ocultarSugerencias();
+        return;
+      }
+      elementos.sugerenciasBusqueda.innerHTML = etiquetas.map((et) => `
+        <button type="button" class="sugerencias-busqueda__item" data-etiqueta="${escaparHtml(et.nombre)}" role="option">
+          <span>${escaparHtml(et.nombre)}</span>
+          <small>${formatearNumero(et.usos)} grupos</small>
+        </button>
+      `).join('');
+      elementos.sugerenciasBusqueda.hidden = false;
+      elementos.inputBusqueda.setAttribute('aria-expanded', 'true');
+    } catch {
+      ocultarSugerencias();
+    }
+  }
+
+  function emojiBandera(codigo) {
+    const c = (codigo || '').toUpperCase();
+    if (!/^[A-Z]{2}$/.test(c) || c === 'LA') return null;
+    return String.fromCodePoint(...[...c].map((l) => 0x1F1E6 - 65 + l.charCodeAt(0)));
+  }
+
+  function renderizarPaisListado(grupo) {
+    if (grupo.restriccion_pais === 'solo_pais') {
+      const flag = emojiBandera(grupo.pais?.codigo) || '📍';
+      const nombre = grupo.pais?.nombre || 'País';
+      return `<span class="tarjeta-lista__pais" title="Solo ${escaparHtml(nombre)}">
+        <span class="tarjeta-lista__bandera" aria-hidden="true">${flag}</span>
+        <span class="tarjeta-lista__pais-texto">${escaparHtml(nombre)}</span>
+      </span>`;
+    }
+    return `<span class="tarjeta-lista__pais" title="Abierto para todos los países">
+      <i data-lucide="globe" aria-hidden="true"></i>
+      <span class="tarjeta-lista__pais-texto">Global</span>
+    </span>`;
+  }
+
+  function crearTarjetaGrupo(grupo, indice) {
+    const url = escaparHtml(grupo.url || `/grupo/grupo-${grupo.id}`);
+    const tarjeta = document.createElement('a');
+    tarjeta.href = url;
+    tarjeta.className = 'tarjeta-lista';
+    tarjeta.role = 'listitem';
+    tarjeta.style.animationDelay = `${indice * 0.03}s`;
 
     tarjeta.innerHTML = `
-      <div class="tarjeta-grupo__cabecera">
-        <div class="tarjeta-grupo__info">
-          <h3 class="tarjeta-grupo__nombre" title="${escaparHtml(grupo.nombre)}">${escaparHtml(grupo.nombre)}</h3>
-          <p class="tarjeta-grupo__descripcion">${escaparHtml(grupo.descripcion || '')}</p>
-        </div>
-        <div class="tarjeta-grupo__meta">
-          <span class="badge-plataforma badge-plataforma--${grupo.plataforma}">
-            <i data-lucide="${iconosPlataforma[grupo.plataforma]}"></i>
-            ${nombresPlataforma[grupo.plataforma]}
-          </span>
-          <span class="tarjeta-grupo__visitas" title="Visitas">
-            <i data-lucide="eye"></i> ${formatearNumero(grupo.visitas)}
-          </span>
-        </div>
-      </div>
-      ${etiquetasHtml}
-      <div class="tarjeta-grupo__acciones">
-        <button class="btn btn--like ${grupo.ya_dio_like ? 'activo' : ''}"
-                data-like="${grupo.id}" aria-label="Dar like">
-          <i data-lucide="heart"></i>
-          <span>${formatearNumero(grupo.likes)}</span>
-        </button>
-        <a href="${escaparHtml(grupo.url || '/grupo/grupo-' + grupo.id)}"
-           class="btn btn--unirse ${grupo.plataforma}">
-          <i data-lucide="external-link"></i>
-          Ver grupo
-        </a>
-      </div>
+      <span class="tarjeta-lista__plataforma tarjeta-lista__plataforma--${grupo.plataforma}" title="${nombresPlataforma[grupo.plataforma]}">
+        <i data-lucide="${iconosPlataforma[grupo.plataforma]}"></i>
+      </span>
+      <span class="tarjeta-lista__nombre">${escaparHtml(grupo.nombre)}</span>
+      ${renderizarPaisListado(grupo)}
+      <i data-lucide="chevron-right" class="tarjeta-lista__flecha" aria-hidden="true"></i>
     `;
 
     return tarjeta;
@@ -168,19 +249,16 @@
     estado.busqueda = '';
     estado.pagina = 1;
     elementos.inputBusqueda.value = nombre;
+    ocultarSugerencias();
+    actualizarFiltroActivo();
     cargarGrupos();
-    document.querySelectorAll('.etiqueta-hash--activa').forEach((el) =>
-      el.classList.remove('etiqueta-hash--activa')
-    );
-    document.querySelectorAll(`[data-etiqueta="${nombre}"]`).forEach((el) =>
-      el.classList.add('etiqueta-hash--activa')
-    );
   }
 
   async function cargarGrupos() {
     if (estado.cargando) return;
     estado.cargando = true;
     alternarEstados({ carga: true });
+    actualizarFiltroActivo();
 
     try {
       const respuesta = await ApiGrupos.obtenerGrupos({
@@ -222,35 +300,47 @@
   async function cargarEstadisticas() {
     try {
       const { estadisticas } = await ApiGrupos.obtenerEstadisticas();
-      elementos.statGrupos.textContent = formatearNumero(estadisticas.total_grupos);
-      elementos.statLikes.textContent = formatearNumero(estadisticas.total_likes);
-      elementos.statVisitas.textContent = formatearNumero(estadisticas.total_visitas);
+      elementos.statGrupos.textContent = `Grupos totales: ${formatearNumero(estadisticas.total_grupos)}`;
     } catch {
-      ['statGrupos', 'statLikes', 'statVisitas'].forEach((id) => {
-        elementos[id].textContent = '0';
-      });
+      elementos.statGrupos.textContent = 'Grupos totales: —';
     }
   }
 
-  async function cargarTendencias() {
-    try {
-      const { etiquetas } = await ApiGrupos.obtenerEtiquetasTendencia();
-      if (!etiquetas.length) {
-        elementos.tendencias.hidden = true;
-        return;
-      }
-      elementos.listaTendencias.innerHTML = renderizarEtiquetas(etiquetas);
-      elementos.tendencias.hidden = false;
-      refrescarIconos(elementos.tendencias);
-    } catch {
-      elementos.tendencias.hidden = true;
+  async function cargarExplorarEtiquetas(reset = false) {
+    if (reset) {
+      explorarEtiquetasEstado.pagina = 1;
+      elementos.gridEtiquetas.innerHTML = '';
     }
+
+    const { etiquetas, paginacion } = await ApiGrupos.explorarEtiquetas({
+      q: explorarEtiquetasEstado.q,
+      pagina: explorarEtiquetasEstado.pagina,
+      porPagina: 24,
+    });
+
+    explorarEtiquetasEstado.total = paginacion.total;
+    explorarEtiquetasEstado.cargado = true;
+
+    if (reset && !etiquetas.length) {
+      elementos.gridEtiquetas.innerHTML = '<p class="explorar-temas__vacio">Sin temas con ese nombre.</p>';
+    } else {
+      elementos.gridEtiquetas.insertAdjacentHTML(
+        'beforeend',
+        etiquetas.map((et) => renderizarEtiquetaEnlace(et)).join('')
+      );
+    }
+
+    const { pagina, total_paginas, total } = paginacion;
+    elementos.infoExplorarEtiquetas.textContent = total
+      ? `${total.toLocaleString('es')} temas · página ${pagina} de ${total_paginas}`
+      : '';
+    elementos.btnMasEtiquetas.hidden = pagina >= total_paginas;
   }
 
   function actualizarPreviaEtiquetas() {
     const tags = parsearEtiquetasInput(document.getElementById('campo-etiquetas').value);
     elementos.vistaEtiquetasPrevia.innerHTML = tags.length
-      ? renderizarEtiquetas(tags.map((n) => ({ nombre: n, color: '#7c3aed' })), false)
+      ? renderizarEtiquetas(tags.map((n) => ({ nombre: n })), false)
       : '';
   }
 
@@ -262,6 +352,9 @@
     actualizarSelectorRestriccion();
     actualizarAyudaPais();
     elementos.modal.showModal();
+    document.body.classList.add('modal-abierto');
+    const cuerpo = elementos.modal.querySelector('.modal__cuerpo');
+    if (cuerpo) cuerpo.scrollTop = 0;
     refrescarIconos(elementos.modal);
   }
 
@@ -279,6 +372,7 @@
 
   function cerrarModal() {
     elementos.modal.close();
+    document.body.classList.remove('modal-abierto');
   }
 
   function actualizarSelectorPlataforma() {
@@ -322,8 +416,9 @@
     document.getElementById('btn-reintentar').addEventListener('click', () => {
       cargarGrupos();
       cargarEstadisticas();
-      cargarTendencias();
     });
+
+    document.getElementById('btn-limpiar-filtro').addEventListener('click', limpiarFiltros);
 
     const ejecutarBusqueda = () => {
       const valor = elementos.inputBusqueda.value.trim();
@@ -345,13 +440,31 @@
 
     document.getElementById('btn-buscar').addEventListener('click', ejecutarBusqueda);
     elementos.inputBusqueda.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') ejecutarBusqueda();
+      if (e.key === 'Enter') {
+        ocultarSugerencias();
+        ejecutarBusqueda();
+      }
+      if (e.key === 'Escape') ocultarSugerencias();
     });
 
     let temporizadorBusqueda;
+    let temporizadorSugerencias;
     elementos.inputBusqueda.addEventListener('input', () => {
       clearTimeout(temporizadorBusqueda);
-      temporizadorBusqueda = setTimeout(ejecutarBusqueda, 400);
+      clearTimeout(temporizadorSugerencias);
+      const valor = elementos.inputBusqueda.value.trim();
+      temporizadorSugerencias = setTimeout(() => mostrarSugerenciasEtiquetas(valor), 200);
+      temporizadorBusqueda = setTimeout(ejecutarBusqueda, 450);
+    });
+
+    elementos.sugerenciasBusqueda.addEventListener('click', (e) => {
+      const item = e.target.closest('[data-etiqueta]');
+      if (!item) return;
+      filtrarPorEtiqueta(item.dataset.etiqueta);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.busqueda-wrap')) ocultarSugerencias();
     });
 
     document.getElementById('btn-buscar-movil').addEventListener('click', () => {
@@ -365,6 +478,7 @@
         chip.classList.add('chip--activo');
         estado.plataforma = chip.dataset.plataforma;
         estado.pagina = 1;
+        actualizarFiltroActivo();
         cargarGrupos();
       });
     });
@@ -395,6 +509,15 @@
 
     document.querySelectorAll('input[name="restriccion_pais"]').forEach((input) => {
       input.addEventListener('change', actualizarSelectorRestriccion);
+    });
+
+    elementos.modal.addEventListener('close', () => {
+      document.body.classList.remove('modal-abierto');
+    });
+
+    elementos.modal.addEventListener('cancel', (e) => {
+      e.preventDefault();
+      cerrarModal();
     });
 
     const campoDescripcion = document.getElementById('campo-descripcion');
@@ -445,7 +568,7 @@
         mostrarToast(respuesta.mensaje, 'exito');
         cerrarModal();
         estado.pagina = 1;
-        await Promise.all([cargarGrupos(), cargarEstadisticas(), cargarTendencias()]);
+        await Promise.all([cargarGrupos(), cargarEstadisticas()]);
         if (respuesta.grupo?.url) {
           setTimeout(() => { window.location.href = respuesta.grupo.url; }, 800);
         }
@@ -457,30 +580,31 @@
       }
     });
 
-    document.addEventListener('click', (e) => {
-      const etiqueta = e.target.closest('[data-etiqueta]');
-      if (etiqueta) {
-        e.preventDefault();
-        filtrarPorEtiqueta(etiqueta.dataset.etiqueta);
+    elementos.explorarTemas?.addEventListener('toggle', () => {
+      if (elementos.explorarTemas.open && !explorarEtiquetasEstado.cargado) {
+        cargarExplorarEtiquetas(true).catch(() => {});
       }
     });
 
-    elementos.grilla.addEventListener('click', async (e) => {
-      const btnLike = e.target.closest('[data-like]');
-      if (btnLike) {
-        e.preventDefault();
-        const grupoId = parseInt(btnLike.dataset.like, 10);
-        if (btnLike.classList.contains('activo')) return;
+    let timerExplorar;
+    elementos.inputExplorarEtiquetas?.addEventListener('input', (e) => {
+      clearTimeout(timerExplorar);
+      timerExplorar = setTimeout(() => {
+        explorarEtiquetasEstado.q = e.target.value.trim();
+        cargarExplorarEtiquetas(true).catch(() => {});
+      }, 350);
+    });
 
-        try {
-          const respuesta = await ApiGrupos.darLike(grupoId);
-          btnLike.classList.add('activo');
-          btnLike.querySelector('span').textContent = formatearNumero(respuesta.likes);
-          cargarEstadisticas();
-        } catch (err) {
-          mostrarToast(err.message, 'error');
-        }
-        return;
+    elementos.btnMasEtiquetas?.addEventListener('click', () => {
+      explorarEtiquetasEstado.pagina += 1;
+      cargarExplorarEtiquetas(false).catch(() => {});
+    });
+
+    document.addEventListener('click', (e) => {
+      const etiqueta = e.target.closest('[data-etiqueta]');
+      if (etiqueta && !etiqueta.closest('.sugerencias-busqueda')) {
+        e.preventDefault();
+        filtrarPorEtiqueta(etiqueta.dataset.etiqueta);
       }
     });
   }
@@ -490,7 +614,8 @@
     enlazarEventos();
     leerParametrosUrl();
     VisitanteGeo.iniciarBadge().then(() => actualizarAyudaPais());
-    await Promise.all([cargarEstadisticas(), cargarTendencias()]);
+    await cargarEstadisticas();
+    actualizarFiltroActivo();
     await cargarGrupos();
   }
 

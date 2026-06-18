@@ -1,6 +1,7 @@
 logs/
 logs/geo-cache/
 config.env
+sun.env
 config.env.local
 api/config.local.php
 node_modules/

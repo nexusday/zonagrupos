@@ -87,6 +87,36 @@ function buscarGrupoPorSlugOId(PDO $bd, string $slug = '', int $id = 0): ?array
     return null;
 }
 
+/** Cuenta visita solo en página de detalle; 1 por visitante cada 24 h */
+function registrarVisitaGrupo(PDO $bd, int $grupoId, string $huella): int
+{
+    try {
+        $stmtDup = $bd->prepare(
+            "SELECT id FROM visitas_registro
+             WHERE grupo_id = :grupo_id AND huella = :huella
+               AND creado_en > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+             LIMIT 1"
+        );
+        $stmtDup->execute([':grupo_id' => $grupoId, ':huella' => $huella]);
+        if ($stmtDup->fetch()) {
+            return 0;
+        }
+
+        $bd->prepare(
+            'INSERT INTO visitas_registro (grupo_id, huella) VALUES (:grupo_id, :huella)'
+        )->execute([':grupo_id' => $grupoId, ':huella' => $huella]);
+        $bd->prepare('UPDATE grupos SET visitas = visitas + 1 WHERE id = :id')->execute([':id' => $grupoId]);
+
+        return 1;
+    } catch (PDOException $e) {
+        if (str_contains($e->getMessage(), 'visitas_registro')) {
+            $bd->prepare('UPDATE grupos SET visitas = visitas + 1 WHERE id = :id')->execute([':id' => $grupoId]);
+            return 1;
+        }
+        throw $e;
+    }
+}
+
 function validarEnlacePlataforma(string $enlace, string $plataforma): bool
 {
     if (!filter_var($enlace, FILTER_VALIDATE_URL)) {
@@ -123,11 +153,11 @@ try {
         }
 
         $grupoId = (int) $fila['id'];
-        $bd->prepare('UPDATE grupos SET visitas = visitas + 1 WHERE id = :id')->execute([':id' => $grupoId]);
-        $fila['visitas'] = (int) $fila['visitas'] + 1;
+        $huella = obtenerHuellaCliente();
+        $incremento = registrarVisitaGrupo($bd, $grupoId, $huella);
+        $fila['visitas'] = (int) $fila['visitas'] + $incremento;
 
         $paisVisitante = obtenerPaisDesdeIp(obtenerIpCliente());
-        $huella = obtenerHuellaCliente();
 
         $stmtLike = $bd->prepare(
             'SELECT id FROM likes_registro WHERE grupo_id = :grupo_id AND huella = :huella'
@@ -312,9 +342,11 @@ try {
             responderError($mensajes[$plataforma] ?? 'Enlace no válido para la plataforma seleccionada.');
         }
 
-        $stmtExiste = $bd->prepare('SELECT id FROM grupos WHERE enlace = :enlace LIMIT 1');
+        $stmtExiste = $bd->prepare('SELECT id, activo FROM grupos WHERE enlace = :enlace LIMIT 1');
         $stmtExiste->execute([':enlace' => $enlace]);
-        if ($stmtExiste->fetch()) {
+        $grupoExistente = $stmtExiste->fetch();
+
+        if ($grupoExistente && (int) $grupoExistente['activo'] === 1) {
             responderError('Ese enlace ya está registrado.');
         }
 
@@ -322,36 +354,71 @@ try {
 
         $bd->beginTransaction();
 
-        $stmt = $bd->prepare(
-            'INSERT INTO grupos (nombre, descripcion, enlace, plataforma, pais_codigo, pais_nombre, restriccion_pais)
-             VALUES (:nombre, :descripcion, :enlace, :plataforma, :pais_codigo, :pais_nombre, :restriccion_pais)'
-        );
-        $stmt->execute([
-            ':nombre'           => $nombre,
-            ':descripcion'      => $descripcion,
-            ':enlace'           => $enlace,
-            ':plataforma'       => $plataforma,
-            ':pais_codigo'      => $pais['codigo'],
-            ':pais_nombre'      => $pais['nombre'],
-            ':restriccion_pais' => $restriccion,
-        ]);
+        if ($grupoExistente && (int) $grupoExistente['activo'] === 0) {
+            $nuevoId = (int) $grupoExistente['id'];
+            $slug = generarSlug($nombre, $nuevoId);
 
-        $nuevoId = (int) $bd->lastInsertId();
-        $slug = generarSlug($nombre, $nuevoId);
+            $bd->prepare(
+                'UPDATE grupos SET
+                    nombre = :nombre,
+                    descripcion = :descripcion,
+                    plataforma = :plataforma,
+                    pais_codigo = :pais_codigo,
+                    pais_nombre = :pais_nombre,
+                    restriccion_pais = :restriccion_pais,
+                    slug = :slug,
+                    activo = 1,
+                    likes = 0,
+                    visitas = 0,
+                    creado_en = NOW()
+                 WHERE id = :id'
+            )->execute([
+                ':nombre'           => $nombre,
+                ':descripcion'      => $descripcion,
+                ':plataforma'       => $plataforma,
+                ':pais_codigo'      => $pais['codigo'],
+                ':pais_nombre'      => $pais['nombre'],
+                ':restriccion_pais' => $restriccion,
+                ':slug'             => $slug,
+                ':id'               => $nuevoId,
+            ]);
 
-        $bd->prepare('UPDATE grupos SET slug = :slug WHERE id = :id')
-           ->execute([':slug' => $slug, ':id' => $nuevoId]);
+            guardarEtiquetasGrupo($bd, $nuevoId, $etiquetas);
+            $bd->commit();
 
-        guardarEtiquetasGrupo($bd, $nuevoId, $etiquetas);
-        $bd->commit();
+            registrarLog('info', 'Grupo republicado (reactivado)', ['id' => $nuevoId, 'slug' => $slug]);
+        } else {
+            $stmt = $bd->prepare(
+                'INSERT INTO grupos (nombre, descripcion, enlace, plataforma, pais_codigo, pais_nombre, restriccion_pais)
+                 VALUES (:nombre, :descripcion, :enlace, :plataforma, :pais_codigo, :pais_nombre, :restriccion_pais)'
+            );
+            $stmt->execute([
+                ':nombre'           => $nombre,
+                ':descripcion'      => $descripcion,
+                ':enlace'           => $enlace,
+                ':plataforma'       => $plataforma,
+                ':pais_codigo'      => $pais['codigo'],
+                ':pais_nombre'      => $pais['nombre'],
+                ':restriccion_pais' => $restriccion,
+            ]);
+
+            $nuevoId = (int) $bd->lastInsertId();
+            $slug = generarSlug($nombre, $nuevoId);
+
+            $bd->prepare('UPDATE grupos SET slug = :slug WHERE id = :id')
+               ->execute([':slug' => $slug, ':id' => $nuevoId]);
+
+            guardarEtiquetasGrupo($bd, $nuevoId, $etiquetas);
+            $bd->commit();
+
+            registrarLog('info', 'Grupo publicado', ['id' => $nuevoId, 'slug' => $slug, 'pais' => $pais['codigo']]);
+        }
 
         $stmtGrupo = $bd->prepare('SELECT * FROM grupos WHERE id = :id');
         $stmtGrupo->execute([':id' => $nuevoId]);
         $grupo = mapearGrupo($stmtGrupo->fetch(), obtenerEtiquetasGrupo($bd, $nuevoId), true);
         $grupo['ya_dio_like'] = false;
         $grupo['puede_unirse'] = true;
-
-        registrarLog('info', 'Grupo publicado', ['id' => $nuevoId, 'slug' => $slug, 'pais' => $pais['codigo']]);
 
         responderJson([
             'exito'   => true,

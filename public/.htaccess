@@ -13,8 +13,12 @@
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Página individual: /grupo/sunkovv-1 → grupo.html
+  # Página de grupo
   RewriteRule ^grupo/[a-zA-Z0-9_-]+/?$ grupo.html [L,QSA]
+
+  # Panel admin (ruta debe coincidir con ADMIN_RUTA en sun.env)
+  RewriteRule ^zg-x7k9m2p/?$ zg-x7k9m2p/index.html [L,QSA]
+  RewriteRule ^zg-x7k9m2p/(.*)$ zg-x7k9m2p/$1 [L,QSA]
 
   # Inicio
   RewriteRule ^$ index.html [L]

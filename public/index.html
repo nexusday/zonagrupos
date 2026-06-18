@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="ZonaGrupos — Descubre y comparte los mejores grupos de WhatsApp, Telegram y Discord en Latinoamérica.">
   <title>ZonaGrupos — Directorio de Grupos</title>
+  <link rel="icon" href="/img/zonagrupos.png" type="image/png">
+  <link rel="apple-touch-icon" href="/img/zonagrupos.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,8 +24,8 @@
   <header class="cabecera">
     <div class="contenedor cabecera__interior">
       <a href="/" class="marca">
-        <span class="marca__icono">
-          <i data-lucide="layers"></i>
+        <span class="marca__icono marca__icono--logo">
+          <img src="/img/zonagrupos.png" alt="" width="38" height="38" decoding="async">
         </span>
         <span class="marca__texto">Zona<span class="marca__acento">Grupos</span></span>
       </a>
@@ -45,59 +47,38 @@
   </header>
 
   <main>
-    <section class="hero">
-      <div class="contenedor hero__contenido">
-        <div class="hero__badge">
-          <i data-lucide="zap"></i>
-          <span>Comunidades activas en LATAM</span>
-        </div>
-        <h1 class="hero__titulo">
-          Encuentra el grupo<br>
-          <span class="gradiente-texto">perfecto para ti</span>
-        </h1>
-        <p class="hero__subtitulo">
-          Descubre grupos de WhatsApp, Telegram y Discord.
-          Filtra por <strong>etiquetas</strong> y encuentra tu comunidad.
-        </p>
-
-        <div class="busqueda" id="busqueda-principal">
-          <div class="busqueda__fila">
-            <i data-lucide="search" class="busqueda__icono"></i>
-            <input
-              type="search"
-              id="input-busqueda"
-              class="busqueda__input"
-              placeholder="Buscar grupos o etiquetas: gaming, amigos..."
-              autocomplete="off"
-              aria-label="Buscar grupos"
-            >
-          </div>
-          <button class="btn btn--acento" id="btn-buscar">
-            Buscar
-          </button>
+    <section class="inicio-intro">
+      <div class="contenedor inicio-intro__interior">
+        <div class="inicio-intro__cabecera">
+          <h1 class="inicio-intro__titulo">Grupos de WhatsApp, Telegram y Discord</h1>
+          <p class="inicio-intro__sub">Directorio por temas y búsqueda. Publica o encuentra tu comunidad.</p>
         </div>
 
-        <div class="estadisticas" id="estadisticas">
-          <div class="estadistica">
-            <span class="estadistica__valor" id="stat-grupos">—</span>
-            <span class="estadistica__etiqueta">Grupos</span>
+        <div class="busqueda-wrap">
+          <div class="busqueda busqueda--compacta" id="busqueda-principal">
+            <div class="busqueda__fila">
+              <i data-lucide="search" class="busqueda__icono"></i>
+              <input
+                type="search"
+                id="input-busqueda"
+                class="busqueda__input"
+                placeholder="Buscar grupo, tema o país..."
+                autocomplete="off"
+                aria-label="Buscar grupos"
+                aria-expanded="false"
+                aria-controls="sugerencias-busqueda"
+              >
+            </div>
+            <button class="btn btn--secundario" id="btn-buscar" type="button">Buscar</button>
           </div>
-          <div class="estadistica__separador"></div>
-          <div class="estadistica">
-            <span class="estadistica__valor" id="stat-likes">—</span>
-            <span class="estadistica__etiqueta">Likes</span>
-          </div>
-          <div class="estadistica__separador"></div>
-          <div class="estadistica">
-            <span class="estadistica__valor" id="stat-visitas">—</span>
-            <span class="estadistica__etiqueta">Visitas</span>
-          </div>
+          <div class="sugerencias-busqueda" id="sugerencias-busqueda" hidden role="listbox"></div>
         </div>
       </div>
     </section>
 
-    <section class="filtros-seccion">
+    <section class="barra-filtros" aria-label="Filtros de grupos">
       <div class="contenedor">
+        <p class="grupos-total" id="stat-grupos" aria-live="polite">Grupos totales: —</p>
         <div class="filtros">
           <div class="filtros__grupo" role="group" aria-label="Filtrar por plataforma">
             <button class="chip chip--activo" data-plataforma="">Todos</button>
@@ -120,16 +101,20 @@
             </select>
           </div>
         </div>
-
-        <div class="tendencias" id="tendencias" hidden>
-          <span class="tendencias__titulo"><i data-lucide="trending-up"></i> En tendencia</span>
-          <div class="tendencias__lista" id="lista-tendencias" role="list"></div>
-        </div>
       </div>
     </section>
 
     <section class="grupos-seccion">
       <div class="contenedor">
+        <div class="filtro-activo" id="filtro-activo" hidden>
+          <span class="filtro-activo__texto" id="filtro-activo-texto"></span>
+          <button type="button" class="filtro-activo__limpiar" id="btn-limpiar-filtro">Quitar filtro</button>
+        </div>
+
+        <div class="grupos-cabecera">
+          <h2 class="grupos-cabecera__titulo" id="titulo-listado">Grupos recientes</h2>
+        </div>
+
         <div id="estado-carga" class="estado estado--carga" hidden>
           <div class="spinner"></div>
           <p>Cargando grupos...</p>
@@ -169,12 +154,28 @@
   <footer class="pie">
     <div class="contenedor pie__interior">
       <div class="pie__marca">
-        <span class="marca__icono marca__icono--pequeno">
-          <i data-lucide="layers"></i>
+        <span class="marca__icono marca__icono--pequeno marca__icono--logo">
+          <img src="/img/zonagrupos.png" alt="" width="28" height="28" decoding="async">
         </span>
         <span>ZonaGrupos</span>
       </div>
       <p class="pie__texto">Directorio de grupos para la comunidad latina. Un enlace, un grupo.</p>
+
+      <details class="explorar-temas" id="explorar-temas">
+        <summary class="explorar-temas__summary">Explorar por tema</summary>
+        <div class="explorar-temas__cuerpo">
+          <p class="explorar-temas__ayuda">Temas con más grupos. Busca o navega — escala a miles de categorías.</p>
+          <div class="explorar-temas__buscar">
+            <input type="search" id="input-explorar-etiquetas" class="explorar-temas__input" placeholder="Filtrar temas..." autocomplete="off">
+          </div>
+          <div class="explorar-temas__grid" id="grid-etiquetas" role="list"></div>
+          <div class="explorar-temas__pie">
+            <span class="explorar-temas__info" id="info-explorar-etiquetas"></span>
+            <button type="button" class="btn btn--fantasma btn--mini" id="btn-mas-etiquetas" hidden>Cargar más</button>
+          </div>
+        </div>
+      </details>
+
       <p class="pie__copy">&copy; 2026 ZonaGrupos.Lat</p>
     </div>
   </footer>

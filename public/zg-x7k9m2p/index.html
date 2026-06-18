@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Panel — ZonaGrupos</title>
+  <link rel="icon" href="/img/zonagrupos.png" type="image/png">
+  <link rel="apple-touch-icon" href="/img/zonagrupos.png">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <div id="vista-login" class="admin-login">
+    <form id="form-login" class="admin-login__caja">
+      <h1>ZonaGrupos</h1>
+      <p class="admin-login__sub">Panel de administración</p>
+      <label>Usuario<input type="text" id="login-usuario" autocomplete="username" required></label>
+      <label>Clave<input type="password" id="login-clave" autocomplete="current-password" required></label>
+      <button type="submit" class="btn btn--primario">Entrar</button>
+      <p id="login-error" class="admin-error" hidden></p>
+    </form>
+  </div>
+
+  <div id="vista-panel" class="admin-panel" hidden>
+    <header class="admin-header">
+      <h1>Panel admin</h1>
+      <div class="admin-header__acciones">
+        <a href="/" class="btn btn--fantasma" target="_blank">Ver web</a>
+        <button type="button" id="btn-logout" class="btn btn--fantasma">Salir</button>
+      </div>
+    </header>
+
+    <section class="admin-stats" id="admin-stats"></section>
+
+    <nav class="admin-tabs">
+      <button type="button" class="admin-tab admin-tab--activo" data-tab="grupos">Grupos</button>
+      <button type="button" class="admin-tab" data-tab="reportes">Reportes <span id="badge-reportes" class="admin-badge" hidden>0</span></button>
+    </nav>
+
+    <section id="tab-grupos" class="admin-tab-panel">
+      <div class="admin-toolbar">
+        <label>Ordenar
+          <select id="select-orden-grupos">
+            <option value="recientes">Más recientes</option>
+            <option value="likes">Más likes</option>
+            <option value="visitas">Más visitas</option>
+            <option value="nombre">Nombre A-Z</option>
+            <option value="reportes">Más reportados</option>
+          </select>
+        </label>
+        <label class="admin-check">
+          <input type="checkbox" id="check-inactivos"> Ver eliminados
+        </label>
+      </div>
+      <div class="admin-tabla-wrap">
+        <table class="admin-tabla" id="tabla-grupos">
+          <thead>
+            <tr>
+              <th>Grupo</th>
+              <th>Plataforma</th>
+              <th>País</th>
+              <th>Likes</th>
+              <th>Visitas</th>
+              <th>Reportes</th>
+              <th>Fecha</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo-grupos"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tab-reportes" class="admin-tab-panel" hidden>
+      <div class="admin-toolbar">
+        <label>Estado
+          <select id="select-estado-reportes">
+            <option value="pendiente">Pendientes</option>
+            <option value="revisado">Revisados</option>
+            <option value="descartado">Descartados</option>
+          </select>
+        </label>
+      </div>
+      <div class="admin-tabla-wrap">
+        <table class="admin-tabla" id="tabla-reportes">
+          <thead>
+            <tr>
+              <th>Grupo</th>
+              <th>Motivo</th>
+              <th>Detalle</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo-reportes"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

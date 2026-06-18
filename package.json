@@ -9,6 +9,8 @@
     "setup-db": "node scripts/configurar-bd.js",
     "migrar-db": "node scripts/migrar-bd.js",
     "actualizar-bd": "node scripts/actualizar-bd.js",
+    "actualizar-reportes": "node scripts/actualizar-reportes.js",
+    "actualizar-visitas": "node scripts/actualizar-visitas.js",
     "iniciar-mysql": "node scripts/iniciar-mysql.js"
   },
   "engines": {
