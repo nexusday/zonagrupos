@@ -15,7 +15,7 @@ $meta = metaInicio();
   <link rel="stylesheet" href="/css/estilos.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
 </head>
-<body>
+<body class="pagina-inicio">
 
   <div class="fondo-animado" aria-hidden="true">
     <div class="orb orb-1"></div>
@@ -161,6 +161,13 @@ $meta = metaInicio();
       </div>
     </section>
   </main>
+
+  <div class="barra-publicar-movil" id="barra-publicar-movil">
+    <button type="button" class="barra-publicar-movil__btn" id="btn-publicar-movil">
+      <i data-lucide="plus"></i>
+      <span>Publicar grupo</span>
+    </button>
+  </div>
 
   <footer class="pie">
     <div class="contenedor pie__interior">

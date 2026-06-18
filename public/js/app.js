@@ -476,6 +476,7 @@
 
   function enlazarEventos() {
     document.getElementById('btn-publicar').addEventListener('click', abrirModal);
+    document.getElementById('btn-publicar-movil')?.addEventListener('click', abrirModal);
     document.getElementById('btn-publicar-vacio')?.addEventListener('click', abrirModal);
     document.getElementById('btn-cerrar-modal').addEventListener('click', cerrarModal);
     document.getElementById('btn-cancelar').addEventListener('click', cerrarModal);

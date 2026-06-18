@@ -1627,8 +1627,13 @@ body.modal-abierto {
 
 body.modal-abierto main,
 body.modal-abierto .cabecera,
-body.modal-abierto .pie {
+body.modal-abierto .pie,
+body.modal-abierto .barra-publicar-movil {
   pointer-events: none;
+}
+
+body.modal-abierto .barra-publicar-movil {
+  display: none;
 }
 
 .modal::backdrop {
@@ -1848,6 +1853,69 @@ body.modal-abierto .pie {
 
   #btn-publicar .btn-publicar-texto {
     display: none;
+  }
+}
+
+/* Barra publicar — móvil */
+.barra-publicar-movil {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .cabecera #btn-publicar {
+    display: none;
+  }
+
+  .pagina-inicio {
+    padding-bottom: calc(4.25rem + var(--espacio-seguro-inf));
+  }
+
+  .barra-publicar-movil {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    padding: 0.65rem 1rem calc(0.65rem + var(--espacio-seguro-inf));
+    background: rgba(7, 7, 9, 0.94);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--borde);
+  }
+
+  .barra-publicar-movil__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: var(--radio-sm);
+    background: var(--acento);
+    color: #fff;
+    font-family: var(--fuente);
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 48px;
+    -webkit-tap-highlight-color: transparent;
+    transition: background var(--transicion);
+  }
+
+  .barra-publicar-movil__btn svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  .barra-publicar-movil__btn:active {
+    background: var(--acento-oscuro);
+  }
+
+  .pagina-inicio .pie {
+    padding-bottom: calc(0.5rem + var(--espacio-seguro-inf));
   }
 }
 
