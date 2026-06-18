@@ -3,20 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="ZonaGrupos — Descubre y comparte los mejores grupos de WhatsApp, Telegram y Discord en Latinoamérica.">
-  <title>ZonaGrupos — Web</title>
+  <meta name="description" content="Directorio de grupos de WhatsApp, Telegram y Discord en Latinoamérica. Busca por tema o país y publica tu enlace de invitación gratis.">
+  <meta name="keywords" content="grupos whatsapp, grupos telegram, grupos discord, enlaces grupos whatsapp, unirse grupo whatsapp, directorio grupos, comunidades latinoamérica">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <title>ZonaGrupos — Grupos de WhatsApp, Telegram y Discord</title>
+  <link rel="canonical" href="https://zonagrupos.lat/">
+  <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
   <link rel="icon" href="/img/zonagrupos.png" type="image/png">
   <link rel="apple-touch-icon" href="/img/zonagrupos.png">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="ZonaGrupos">
-  <meta property="og:locale" content="es_LA">
-  <meta property="og:title" content="ZonaGrupos — Directorio de Grupos">
-  <meta property="og:description" content="Descubre y comparte grupos de WhatsApp, Telegram y Discord en Latinoamérica.">
+  <meta property="og:locale" content="es_419">
+  <meta property="og:title" content="ZonaGrupos — Grupos de WhatsApp, Telegram y Discord">
+  <meta property="og:description" content="Encuentra y publica grupos de WhatsApp, Telegram y Discord. Busca por tema, país o plataforma.">
   <meta property="og:url" content="https://zonagrupos.lat/">
   <meta property="og:image" content="https://zonagrupos.lat/img/zonagrupos.png">
-  <meta property="og:image:alt" content="ZonaGrupos">
+  <meta property="og:image:alt" content="ZonaGrupos — Directorio de grupos">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ZonaGrupos — Grupos de WhatsApp, Telegram y Discord">
+  <meta name="twitter:description" content="Directorio para encontrar y compartir grupos en Latinoamérica.">
   <meta name="twitter:image" content="https://zonagrupos.lat/img/zonagrupos.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://zonagrupos.lat/#sitio",
+        "name": "ZonaGrupos",
+        "url": "https://zonagrupos.lat/",
+        "description": "Directorio para encontrar y publicar grupos de WhatsApp, Telegram y Discord en Latinoamérica.",
+        "inLanguage": "es-419",
+        "publisher": {
+          "@type": "Organization",
+          "name": "ZonaGrupos",
+          "url": "https://zonagrupos.lat/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://zonagrupos.lat/img/zonagrupos.png"
+          }
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://zonagrupos.lat/?busqueda={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://zonagrupos.lat/#organizacion",
+        "name": "ZonaGrupos",
+        "url": "https://zonagrupos.lat/",
+        "logo": "https://zonagrupos.lat/img/zonagrupos.png",
+        "description": "Directorio de grupos de WhatsApp, Telegram y Discord para la comunidad latina."
+      }
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -101,6 +147,12 @@
             <button class="chip" data-plataforma="discord">
               <i data-lucide="headphones"></i> Discord
             </button>
+          </div>
+
+          <div class="filtros__grupo filtros__grupo--contenido" role="group" aria-label="Tipo de contenido">
+            <button class="chip chip--activo" data-clasificacion="">Todos</button>
+            <button class="chip" data-clasificacion="normal">General</button>
+            <button class="chip chip--adulto" data-clasificacion="adulto">+18</button>
           </div>
 
           <div class="filtros__derecha">
@@ -203,15 +255,15 @@
       <div class="campo">
         <label for="campo-nombre">Nombre del grupo <span class="requerido">*</span></label>
         <input type="text" id="campo-nombre" name="nombre" maxlength="120" required
-               placeholder="Ej: Grupo amigos">
-        <span class="campo__ayuda">Mínimo 3 caracteres</span>
+               placeholder="Ej: Gamers LATAM 🔥" autocomplete="off">
+        <span class="campo__ayuda">Letras normales y emojis. Mínimo 3 caracteres.</span>
       </div>
 
       <div class="campo">
         <label for="campo-descripcion">Descripción <span class="requerido">*</span></label>
         <textarea id="campo-descripcion" name="descripcion" maxlength="500" rows="3" required
                   placeholder="Describe de qué trata tu grupo, quién puede unirse, horarios..."></textarea>
-        <span class="campo__ayuda">Solo texto descriptivo, sin etiquetas aquí</span>
+        <span class="campo__ayuda">Letras normales y emojis. Sin tipografías raras.</span>
         <span class="campo__contador"><span id="contador-descripcion">0</span>/500</span>
       </div>
 
@@ -249,6 +301,23 @@
         <input type="url" id="campo-enlace" name="enlace" required
                placeholder="https://chat.whatsapp.com/...">
         <span class="campo__ayuda" id="ayuda-enlace">Solo WhatsApp, Telegram o Discord. Un enlace por grupo.</span>
+      </div>
+
+      <div class="campo">
+        <label>Tipo de contenido <span class="requerido">*</span></label>
+        <div class="selector-restriccion selector-clasificacion" role="radiogroup" aria-label="Clasificación del grupo">
+          <label class="restriccion-opcion restriccion-opcion--activa">
+            <input type="radio" name="clasificacion" value="normal" checked>
+            <i data-lucide="users"></i>
+            <span>Grupo general</span>
+          </label>
+          <label class="restriccion-opcion restriccion-opcion--adulto">
+            <input type="radio" name="clasificacion" value="adulto">
+            <i data-lucide="shield-alert"></i>
+            <span>Contenido sexual (+18)</span>
+          </label>
+        </div>
+        <span class="campo__ayuda">Marca +18 solo si el grupo es para adultos.</span>
       </div>
 
       <div class="campo">

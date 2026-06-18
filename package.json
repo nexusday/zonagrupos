@@ -11,6 +11,7 @@
     "actualizar-bd": "node scripts/actualizar-bd.js",
     "actualizar-reportes": "node scripts/actualizar-reportes.js",
     "actualizar-visitas": "node scripts/actualizar-visitas.js",
+    "actualizar-clasificacion": "node scripts/actualizar-clasificacion.js",
     "iniciar-mysql": "node scripts/iniciar-mysql.js"
   },
   "engines": {

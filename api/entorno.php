@@ -3,6 +3,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/cargar-config.php';
 
+if (function_exists('mb_internal_encoding')) {
+    mb_internal_encoding('UTF-8');
+}
+if (function_exists('mb_http_output')) {
+    mb_http_output('UTF-8');
+}
+
 /**
  * Adapta variables cuando PHP corre desde el servidor Node (CLI).
  */
@@ -31,6 +38,20 @@ if (!function_exists('mb_strtolower')) {
     function mb_strtolower(string $texto, ?string $codificacion = null): string
     {
         return strtolower($texto);
+    }
+}
+
+if (!function_exists('mb_substr')) {
+    function mb_substr(string $texto, int $inicio, ?int $longitud = null, ?string $codificacion = null): string
+    {
+        return $longitud === null ? substr($texto, $inicio) : substr($texto, $inicio, $longitud);
+    }
+}
+
+if (!function_exists('mb_strrpos')) {
+    function mb_strrpos(string $texto, string $aguja, int $desde = 0, ?string $codificacion = null): int|false
+    {
+        return strrpos($texto, $aguja, $desde);
     }
 }
 

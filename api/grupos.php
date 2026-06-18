@@ -6,6 +6,7 @@ require_once __DIR__ . '/respuestas.php';
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/etiquetas-logica.php';
 require_once __DIR__ . '/geo.php';
+require_once __DIR__ . '/texto.php';
 require_once __DIR__ . '/logger.php';
 
 enviarCabecerasCors();
@@ -16,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 $plataformasValidas = ['whatsapp', 'telegram', 'discord'];
+$clasificacionesValidas = ['normal', 'adulto'];
 
 function generarSlug(string $nombre, int $id): string
 {
@@ -49,6 +51,8 @@ function mapearGrupo(array $fila, array $etiquetas = [], bool $incluirEnlace = f
             'nombre' => $fila['pais_nombre'] ?? 'Latinoamérica',
         ],
         'restriccion_pais' => $fila['restriccion_pais'] ?? 'todos',
+        'clasificacion'    => $fila['clasificacion'] ?? 'normal',
+        'clasificacion_etiqueta' => etiquetaClasificacion($fila['clasificacion'] ?? 'normal'),
         'creado_en'        => $fila['creado_en'],
     ];
 
@@ -177,6 +181,7 @@ try {
     if ($metodo === 'GET' && $accion === '') {
         $busqueda   = trim($_GET['busqueda'] ?? '');
         $plataforma = trim($_GET['plataforma'] ?? '');
+        $clasificacion = trim($_GET['clasificacion'] ?? '');
         $etiqueta   = trim(ltrim($_GET['etiqueta'] ?? '', '#'));
         $orden      = trim($_GET['orden'] ?? 'recientes');
         $pagina     = max(1, (int) ($_GET['pagina'] ?? 1));
@@ -204,6 +209,11 @@ try {
         if ($plataforma !== '' && in_array($plataforma, $plataformasValidas, true)) {
             $condiciones[] = 'g.plataforma = :plataforma';
             $parametros[':plataforma'] = $plataforma;
+        }
+
+        if ($clasificacion !== '' && in_array($clasificacion, $clasificacionesValidas, true)) {
+            $condiciones[] = 'g.clasificacion = :clasificacion';
+            $parametros[':clasificacion'] = $clasificacion;
         }
 
         if ($etiqueta !== '') {
@@ -298,18 +308,27 @@ try {
         $datos = leerCuerpoJson();
         registrarLog('info', 'Intento publicar grupo', ['datos' => array_keys($datos)]);
 
-        $nombre      = trim($datos['nombre'] ?? '');
-        $descripcion = trim($datos['descripcion'] ?? '');
+        $nombre      = normalizarTextoPublicacion($datos['nombre'] ?? '');
+        $descripcion = normalizarTextoPublicacion($datos['descripcion'] ?? '');
         $enlace      = trim($datos['enlace'] ?? '');
         $plataforma  = trim($datos['plataforma'] ?? 'whatsapp');
         $restriccion = ($datos['restriccion_pais'] ?? 'todos') === 'solo_pais' ? 'solo_pais' : 'todos';
+        $clasificacion = ($datos['clasificacion'] ?? 'normal') === 'adulto' ? 'adulto' : 'normal';
 
         if ($nombre === '' || mb_strlen($nombre) < 3) {
             responderError('El nombre debe tener al menos 3 caracteres.');
         }
 
+        if (!textoPublicacionValido($nombre)) {
+            responderError(mensajeTextoInvalido());
+        }
+
         if (mb_strlen($descripcion) < 3) {
             responderError('La descripción es obligatoria.');
+        }
+
+        if (!textoPublicacionValido($descripcion, true)) {
+            responderError(mensajeTextoInvalido());
         }
 
         $etiquetas = normalizarListaEtiquetas($datos['etiquetas'] ?? []);
@@ -362,6 +381,7 @@ try {
                     pais_codigo = :pais_codigo,
                     pais_nombre = :pais_nombre,
                     restriccion_pais = :restriccion_pais,
+                    clasificacion = :clasificacion,
                     slug = :slug,
                     activo = 1,
                     likes = 0,
@@ -375,6 +395,7 @@ try {
                 ':pais_codigo'      => $pais['codigo'],
                 ':pais_nombre'      => $pais['nombre'],
                 ':restriccion_pais' => $restriccion,
+                ':clasificacion'    => $clasificacion,
                 ':slug'             => $slug,
                 ':id'               => $nuevoId,
             ]);
@@ -385,8 +406,8 @@ try {
             registrarLog('info', 'Grupo republicado (reactivado)', ['id' => $nuevoId, 'slug' => $slug]);
         } else {
             $stmt = $bd->prepare(
-                'INSERT INTO grupos (nombre, descripcion, enlace, plataforma, pais_codigo, pais_nombre, restriccion_pais)
-                 VALUES (:nombre, :descripcion, :enlace, :plataforma, :pais_codigo, :pais_nombre, :restriccion_pais)'
+                'INSERT INTO grupos (nombre, descripcion, enlace, plataforma, pais_codigo, pais_nombre, restriccion_pais, clasificacion)
+                 VALUES (:nombre, :descripcion, :enlace, :plataforma, :pais_codigo, :pais_nombre, :restriccion_pais, :clasificacion)'
             );
             $stmt->execute([
                 ':nombre'           => $nombre,
@@ -396,6 +417,7 @@ try {
                 ':pais_codigo'      => $pais['codigo'],
                 ':pais_nombre'      => $pais['nombre'],
                 ':restriccion_pais' => $restriccion,
+                ':clasificacion'    => $clasificacion,
             ]);
 
             $nuevoId = (int) $bd->lastInsertId();

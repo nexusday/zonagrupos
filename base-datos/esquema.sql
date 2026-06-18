@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS grupos (
   pais_codigo     VARCHAR(5)   NOT NULL DEFAULT 'LAT',
   pais_nombre     VARCHAR(80)  NOT NULL DEFAULT 'Latinoamérica',
   restriccion_pais ENUM('todos','solo_pais') NOT NULL DEFAULT 'todos',
+  clasificacion   ENUM('normal','adulto') NOT NULL DEFAULT 'normal',
   likes           INT UNSIGNED NOT NULL DEFAULT 0,
   visitas         INT UNSIGNED NOT NULL DEFAULT 0,
   activo          TINYINT(1)   NOT NULL DEFAULT 1,
@@ -21,10 +22,11 @@ CREATE TABLE IF NOT EXISTS grupos (
   UNIQUE KEY uq_enlace (enlace(255)),
   UNIQUE KEY uq_slug (slug),
   INDEX idx_plataforma (plataforma),
+  INDEX idx_clasificacion (clasificacion),
   INDEX idx_likes (likes DESC),
   INDEX idx_creado (creado_en DESC),
   FULLTEXT INDEX ft_busqueda (nombre, descripcion)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS etiquetas (
   id        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -33,7 +35,7 @@ CREATE TABLE IF NOT EXISTS etiquetas (
   creado_en TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uq_etiqueta (nombre),
   INDEX idx_usos (usos DESC)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS grupo_etiquetas (
   grupo_id    INT UNSIGNED NOT NULL,
@@ -42,7 +44,7 @@ CREATE TABLE IF NOT EXISTS grupo_etiquetas (
   INDEX idx_etiqueta (etiqueta_id),
   CONSTRAINT fk_ge_grupo FOREIGN KEY (grupo_id) REFERENCES grupos(id) ON DELETE CASCADE,
   CONSTRAINT fk_ge_etiqueta FOREIGN KEY (etiqueta_id) REFERENCES etiquetas(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS likes_registro (
   id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -51,7 +53,7 @@ CREATE TABLE IF NOT EXISTS likes_registro (
   creado_en   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uq_like (grupo_id, huella),
   CONSTRAINT fk_like_grupo FOREIGN KEY (grupo_id) REFERENCES grupos(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS visitas_registro (
   id        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -60,7 +62,7 @@ CREATE TABLE IF NOT EXISTS visitas_registro (
   creado_en TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_visita_grupo_huella (grupo_id, huella, creado_en DESC),
   CONSTRAINT fk_visita_grupo FOREIGN KEY (grupo_id) REFERENCES grupos(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS reportes (
   id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -73,4 +75,4 @@ CREATE TABLE IF NOT EXISTS reportes (
   INDEX idx_estado (estado, creado_en DESC),
   INDEX idx_grupo (grupo_id),
   CONSTRAINT fk_reporte_grupo FOREIGN KEY (grupo_id) REFERENCES grupos(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

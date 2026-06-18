@@ -11,6 +11,7 @@
   const estado = {
     busqueda: '',
     plataforma: '',
+    clasificacion: '',
     etiqueta: '',
     orden: 'recientes',
     pagina: 1,
@@ -79,6 +80,18 @@
     telegram: 'El enlace debe ser de Telegram (t.me).',
     discord: 'El enlace debe ser de Discord (discord.gg o discord.com/invite).',
   };
+
+  const MENSAJE_TEXTO_INVALIDO = 'Usa letras normales y emojis. No se permiten tipografías especiales ni caracteres raros.';
+
+  function textoPublicacionValido(texto, permitirSaltos = false) {
+    if (!texto) return false;
+    if (/[\u0400-\u04FF\u0600-\u06FF\u4E00-\u9FFF\uAC00-\uD7AF]/.test(texto)) return false;
+    if (/[\u{1D400}-\u{1D7FF}\u{2100}-\u{214F}\u{2460}-\u{24FF}\u{FF00}-\u{FFEF}]/u.test(texto)) return false;
+    if (/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(texto)) return false;
+    const base = permitirSaltos ? '\n\r' : '';
+    const patron = new RegExp(`^(?:[\\p{Script=Latin}\\p{N}\\p{M}\\s.,!?¿¡:;\\-'"()@#&%+°/\\[\\]«»${base}]|\\p{Extended_Pictographic}|\\u200D|\\uFE0F)+$`, 'u');
+    return patron.test(texto);
+  }
 
   function validarEnlacePlataforma(enlace, plataforma) {
     if (!patronesEnlace[plataforma]) return false;
@@ -162,6 +175,8 @@
     if (estado.plataforma) {
       partes.push(nombresPlataforma[estado.plataforma] || estado.plataforma);
     }
+    if (estado.clasificacion === 'normal') partes.push('General');
+    if (estado.clasificacion === 'adulto') partes.push('+18');
 
     if (partes.length) {
       elementos.filtroActivoTexto.textContent = partes.join(' · ');
@@ -190,7 +205,11 @@
     document.querySelectorAll('.chip[data-plataforma]').forEach((c) => {
       c.classList.toggle('chip--activo', c.dataset.plataforma === '');
     });
+    document.querySelectorAll('.chip[data-clasificacion]').forEach((c) => {
+      c.classList.toggle('chip--activo', c.dataset.clasificacion === '');
+    });
     estado.plataforma = '';
+    estado.clasificacion = '';
     actualizarFiltroActivo();
     cargarGrupos();
   }
@@ -259,6 +278,7 @@
         <i data-lucide="${iconosPlataforma[grupo.plataforma]}"></i>
       </span>
       <span class="tarjeta-lista__nombre">${escaparHtml(grupo.nombre)}</span>
+      ${grupo.clasificacion === 'adulto' ? '<span class="tarjeta-lista__badge-adulto">+18</span>' : ''}
       ${renderizarPaisListado(grupo)}
       <i data-lucide="chevron-right" class="tarjeta-lista__flecha" aria-hidden="true"></i>
     `;
@@ -286,6 +306,7 @@
       const respuesta = await ApiGrupos.obtenerGrupos({
         busqueda: estado.busqueda,
         plataforma: estado.plataforma,
+        clasificacion: estado.clasificacion,
         etiqueta: estado.etiqueta,
         orden: estado.orden,
         pagina: estado.pagina,
@@ -372,6 +393,7 @@
     elementos.vistaEtiquetasPrevia.innerHTML = '';
     actualizarSelectorPlataforma();
     actualizarSelectorRestriccion();
+    actualizarSelectorClasificacion();
     actualizarAyudaPais();
     elementos.modal.showModal();
     document.body.classList.add('modal-abierto');
@@ -408,9 +430,14 @@
   }
 
   function actualizarSelectorRestriccion() {
-    document.querySelectorAll('.restriccion-opcion').forEach((opcion) => {
-      const input = opcion.querySelector('input');
-      opcion.classList.toggle('restriccion-opcion--activa', input.checked);
+    document.querySelectorAll('input[name="restriccion_pais"]').forEach((input) => {
+      input.closest('.restriccion-opcion')?.classList.toggle('restriccion-opcion--activa', input.checked);
+    });
+  }
+
+  function actualizarSelectorClasificacion() {
+    document.querySelectorAll('input[name="clasificacion"]').forEach((input) => {
+      input.closest('.restriccion-opcion')?.classList.toggle('restriccion-opcion--activa', input.checked);
     });
   }
 
@@ -505,6 +532,17 @@
       });
     });
 
+    document.querySelectorAll('.chip[data-clasificacion]').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.chip[data-clasificacion]').forEach((c) => c.classList.remove('chip--activo'));
+        chip.classList.add('chip--activo');
+        estado.clasificacion = chip.dataset.clasificacion;
+        estado.pagina = 1;
+        actualizarFiltroActivo();
+        cargarGrupos();
+      });
+    });
+
     elementos.selectOrden.addEventListener('change', () => {
       estado.orden = elementos.selectOrden.value;
       estado.pagina = 1;
@@ -531,6 +569,10 @@
 
     document.querySelectorAll('input[name="restriccion_pais"]').forEach((input) => {
       input.addEventListener('change', actualizarSelectorRestriccion);
+    });
+
+    document.querySelectorAll('input[name="clasificacion"]').forEach((input) => {
+      input.addEventListener('change', actualizarSelectorClasificacion);
     });
 
     elementos.modal.addEventListener('close', () => {
@@ -573,13 +615,32 @@
         return;
       }
 
+      const nombre = document.getElementById('campo-nombre').value.trim();
+
+      if (!nombre || nombre.length < 3) {
+        mostrarToast('El nombre debe tener al menos 3 caracteres', 'error');
+        btnEnviar.disabled = false;
+        return;
+      }
+      if (!textoPublicacionValido(nombre)) {
+        mostrarToast(MENSAJE_TEXTO_INVALIDO, 'error');
+        btnEnviar.disabled = false;
+        return;
+      }
+      if (!textoPublicacionValido(descripcion, true)) {
+        mostrarToast(MENSAJE_TEXTO_INVALIDO, 'error');
+        btnEnviar.disabled = false;
+        return;
+      }
+
       const datos = {
-        nombre: document.getElementById('campo-nombre').value.trim(),
+        nombre,
         descripcion,
         etiquetas,
         enlace: document.getElementById('campo-enlace').value.trim(),
         plataforma: document.querySelector('input[name="plataforma"]:checked')?.value || 'whatsapp',
         restriccion_pais: document.querySelector('input[name="restriccion_pais"]:checked')?.value || 'todos',
+        clasificacion: document.querySelector('input[name="clasificacion"]:checked')?.value || 'normal',
       };
 
       if (!['whatsapp', 'telegram', 'discord'].includes(datos.plataforma)) {

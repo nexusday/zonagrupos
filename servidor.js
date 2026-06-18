@@ -160,7 +160,7 @@ function verificarMysql() {
   }
 }
 
-function ejecutarPhpPagina(archivoPhp, req, res, paramsExtra = {}) {
+function ejecutarPhpPagina(archivoPhp, req, res, paramsExtra = {}, tipoContenido = 'text/html; charset=utf-8') {
   return new Promise((resolve) => {
     let cuerpoEntrada = '';
     req.on('data', (chunk) => { cuerpoEntrada += chunk; });
@@ -205,7 +205,7 @@ function ejecutarPhpPagina(archivoPhp, req, res, paramsExtra = {}) {
           res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
           res.end('Error al cargar la página.');
         } else {
-          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.writeHead(200, { 'Content-Type': tipoContenido });
           res.end(salida);
         }
         resolve();
@@ -325,6 +325,22 @@ function manejarSolicitud(req, res) {
     }
 
     ejecutarPhp(archivoPhp, req, res);
+    return;
+  }
+
+  if (ruta === '/sitemap.xml') {
+    const archivoSitemap = path.join(CARPETA_PUBLICA, 'sitemap.php');
+    if (rutaPhp && fs.existsSync(archivoSitemap)) {
+      ejecutarPhpPagina(archivoSitemap, req, res, {}, 'application/xml; charset=utf-8');
+    } else {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Sitemap no disponible');
+    }
+    return;
+  }
+
+  if (ruta === '/robots.txt') {
+    servirEstatico(path.join(CARPETA_PUBLICA, 'robots.txt'), res);
     return;
   }
 

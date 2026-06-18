@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/api/entorno.php';
 require_once dirname(__DIR__) . '/api/conexion.php';
+require_once dirname(__DIR__) . '/api/seo.php';
 
 function escOg(string $texto): string
 {
@@ -16,25 +17,36 @@ if ($slug === '' && isset($_SERVER['REQUEST_URI'])) {
     }
 }
 
-$appUrl = rtrim(envConfig('APP_URL', 'https://zonagrupos.lat'), '/');
+$appUrl = urlBaseApp();
 $ogImage = $appUrl . '/img/zonagrupos.png';
-$titulo = 'Grupo — ZonaGrupos';
-$descripcion = 'Descubre y únete a grupos de WhatsApp, Telegram y Discord en ZonaGrupos.';
-$canonical = $slug !== '' ? $appUrl . '/grupo/' . rawurlencode($slug) : $appUrl . '/';
+$grupoDatos = null;
+$etiquetas = [];
+$indexar = false;
+
+$titulo = 'Grupo no encontrado — ZonaGrupos';
+$descripcion = 'Este grupo no está disponible en ZonaGrupos.';
+$keywords = 'grupos whatsapp, grupos telegram, grupos discord, directorio grupos';
+$canonical = $slug !== '' ? urlGrupo($slug, $appUrl) : $appUrl . '/';
+$jsonLd = null;
 
 if ($slug !== '') {
     try {
         $bd = obtenerConexion();
         $stmt = $bd->prepare(
-            'SELECT nombre, descripcion, slug FROM grupos WHERE slug = :slug AND activo = 1 LIMIT 1'
+            'SELECT id, nombre, descripcion, slug, plataforma, pais_codigo, pais_nombre, clasificacion, creado_en, actualizado_en
+             FROM grupos WHERE slug = :slug AND activo = 1 LIMIT 1'
         );
         $stmt->execute([':slug' => $slug]);
-        $grupo = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($grupo) {
-            $titulo = $grupo['nombre'] . ' — ZonaGrupos';
-            $texto = preg_replace('/\s+/', ' ', trim(strip_tags($grupo['descripcion'])));
-            $descripcion = mb_substr($texto, 0, 160);
-            $canonical = $appUrl . '/grupo/' . $grupo['slug'];
+        $grupoDatos = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+
+        if ($grupoDatos) {
+            $etiquetas = etiquetasDeGrupo($bd, (int) $grupoDatos['id']);
+            $titulo = construirTituloGrupo($grupoDatos);
+            $descripcion = construirDescripcionGrupo($grupoDatos, $etiquetas);
+            $keywords = construirKeywordsGrupo($grupoDatos, $etiquetas);
+            $canonical = urlGrupo($grupoDatos['slug'], $appUrl);
+            $jsonLd = jsonLdGrupo($grupoDatos, $etiquetas, $appUrl);
+            $indexar = true;
         }
     } catch (Throwable) {
         // Valores por defecto
@@ -50,19 +62,24 @@ if ($slug !== '') {
   <link rel="icon" href="/img/zonagrupos.png" type="image/png">
   <link rel="apple-touch-icon" href="/img/zonagrupos.png">
   <meta name="description" content="<?= escOg($descripcion) ?>">
+  <meta name="keywords" content="<?= escOg($keywords) ?>">
+  <meta name="robots" content="<?= $indexar ? 'index, follow, max-image-preview:large' : 'noindex, nofollow' ?>">
   <link rel="canonical" id="meta-canonical" href="<?= escOg($canonical) ?>">
-  <meta property="og:type" content="website">
+  <meta property="og:type" content="article">
   <meta property="og:site_name" content="ZonaGrupos">
-  <meta property="og:locale" content="es_LA">
+  <meta property="og:locale" content="es_419">
   <meta property="og:title" id="meta-og-titulo" content="<?= escOg($titulo) ?>">
   <meta property="og:description" id="meta-og-descripcion" content="<?= escOg($descripcion) ?>">
   <meta property="og:url" content="<?= escOg($canonical) ?>">
   <meta property="og:image" id="meta-og-imagen" content="<?= escOg($ogImage) ?>">
-  <meta property="og:image:alt" content="ZonaGrupos">
+  <meta property="og:image:alt" content="<?= escOg($grupoDatos['nombre'] ?? 'ZonaGrupos') ?>">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="<?= escOg($titulo) ?>">
   <meta name="twitter:description" content="<?= escOg($descripcion) ?>">
   <meta name="twitter:image" content="<?= escOg($ogImage) ?>">
+<?php if ($jsonLd !== null) {
+    emitirJsonLd($jsonLd);
+} ?>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -94,7 +111,23 @@ if ($slug !== '') {
   </header>
 
   <main class="pagina-grupo__main">
-    <div id="estado-carga" class="estado estado--carga grupo-estado-centrado">
+<?php if ($grupoDatos): ?>
+    <article class="seo-prerender contenedor" id="seo-prerender">
+      <h1><?= escOg($grupoDatos['nombre']) ?></h1>
+      <p class="seo-prerender__meta">
+        Grupo de <?= escOg(nombrePlataformaSeo($grupoDatos['plataforma'])) ?>
+        <?php if (($grupoDatos['pais_nombre'] ?? '') !== ''): ?>
+          · <?= escOg($grupoDatos['pais_nombre']) ?>
+        <?php endif; ?>
+        · <?= escOg(($grupoDatos['clasificacion'] ?? 'normal') === 'adulto' ? 'Contenido sexual (+18)' : 'Grupo general') ?>
+      </p>
+      <p><?= escOg($grupoDatos['descripcion']) ?></p>
+<?php if ($etiquetas !== []): ?>
+      <p class="seo-prerender__etiquetas">Temas: <?= escOg(implode(', ', $etiquetas)) ?></p>
+<?php endif; ?>
+    </article>
+<?php endif; ?>
+    <div id="estado-carga" class="estado estado--carga grupo-estado-centrado"<?= $grupoDatos ? ' hidden' : '' ?>>
       <div class="spinner"></div>
       <p>Cargando grupo...</p>
     </div>

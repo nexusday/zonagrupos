@@ -57,10 +57,25 @@
   function actualizarSeo(grupo) {
     const origen = window.location.origin;
     const imagenOg = `${origen}/img/zonagrupos.png`;
-    document.title = `${grupo.nombre} — ZonaGrupos`;
-    const desc = grupo.descripcion.slice(0, 160);
+    const plataforma = nombresPlataforma[grupo.plataforma] || 'WhatsApp';
+    const pais = grupo.pais?.nombre || '';
+    const titulo = pais && grupo.pais?.codigo !== 'LAT'
+      ? `${grupo.nombre} | Grupo de ${plataforma} en ${pais}`
+      : `${grupo.nombre} | Grupo de ${plataforma}`;
+
+    let desc = `"${grupo.nombre}" es un grupo de ${plataforma}`;
+    if (pais && grupo.pais?.codigo !== 'LAT') desc += ` de ${pais}`;
+    desc += `. ${grupo.descripcion.slice(0, 120)}`;
+    if (grupo.etiquetas?.length) {
+      const temas = grupo.etiquetas.slice(0, 4).map((e) => e.nombre).join(', ');
+      desc += ` Temas: ${temas}.`;
+    }
+    desc += ' Enlace de invitación en ZonaGrupos.';
+    if (desc.length > 160) desc = `${desc.slice(0, 157)}…`;
+
+    document.title = titulo;
     document.querySelector('meta[name="description"]').content = desc;
-    document.getElementById('meta-og-titulo').content = grupo.nombre;
+    document.getElementById('meta-og-titulo').content = titulo;
     document.getElementById('meta-og-descripcion').content = desc;
     document.getElementById('meta-canonical').href = `${origen}${grupo.url}`;
     const ogUrl = document.querySelector('meta[property="og:url"]');
@@ -123,6 +138,10 @@
          </div>`;
 
     const color = coloresPlataforma[grupo.plataforma] || '#7c3aed';
+    const esAdulto = grupo.clasificacion === 'adulto';
+    const badgeClasificacion = esAdulto
+      ? '<span class="badge-clasificacion badge-clasificacion--adulto">+18 · Contenido sexual</span>'
+      : '<span class="badge-clasificacion badge-clasificacion--normal">Grupo general</span>';
 
     return `
       <section class="grupo-hero grupo-hero--${grupo.plataforma}" style="--color-plataforma:${color}">
@@ -134,6 +153,7 @@
             <i data-lucide="${iconosPlataforma[grupo.plataforma]}"></i>
             ${nombresPlataforma[grupo.plataforma]}
           </span>
+          ${badgeClasificacion}
           <h1 class="grupo-hero__titulo">${escaparHtml(grupo.nombre)}</h1>
           <p class="grupo-hero__meta">
             <span><i data-lucide="calendar"></i> Publicado ${formatearFecha(grupo.creado_en)}</span>
@@ -178,6 +198,11 @@
                   <span>${restriccionTexto}</span>
                   <small>Acceso</small>
                 </div>
+                <div class="detalle-stat">
+                  <i data-lucide="${esAdulto ? 'shield-alert' : 'users'}"></i>
+                  <span>${esAdulto ? 'Contenido +18' : 'Grupo general'}</span>
+                  <small>Tipo</small>
+                </div>
               </div>
             </section>
 
@@ -219,6 +244,7 @@
             <ul class="grupo-info-lista">
               <li><span>Plataforma</span><strong>${nombresPlataforma[grupo.plataforma]}</strong></li>
               <li><span>País del grupo</span><strong>${escaparHtml(grupo.pais.nombre)}</strong></li>
+              <li><span>Tipo</span><strong>${esAdulto ? 'Contenido sexual (+18)' : 'Grupo general'}</strong></li>
               <li><span>Acceso</span><strong>${restriccionTexto}</strong></li>
               <li><span>Publicado</span><strong>${formatearFecha(grupo.creado_en)}</strong></li>
             </ul>
@@ -411,6 +437,7 @@
       actualizarSeo(grupo);
 
       const contenedor = document.getElementById('contenido-grupo');
+      document.getElementById('seo-prerender')?.remove();
       contenedor.innerHTML = renderizarPagina(grupo);
       mostrarVista('contenido');
 

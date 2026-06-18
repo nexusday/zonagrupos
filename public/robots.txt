@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /zg-x7k9m2p/
+
+Sitemap: https://zonagrupos.lat/sitemap.xml

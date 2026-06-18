@@ -142,7 +142,7 @@
 
     const tbody = document.getElementById('cuerpo-grupos');
     if (!grupos.length) {
-      tbody.innerHTML = '<tr><td colspan="8">Sin grupos</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9">Sin grupos</td></tr>';
       return;
     }
 
@@ -154,6 +154,13 @@
         </td>
         <td>${esc(g.plataforma)}</td>
         <td>${esc(g.pais?.nombre || '—')}</td>
+        <td>
+          <select class="admin-select-clasificacion ${g.clasificacion === 'adulto' ? 'admin-select-clasificacion--adulto' : ''}"
+                  data-clasificacion="${g.id}" aria-label="Tipo de contenido de ${esc(g.nombre)}">
+            <option value="normal" ${g.clasificacion !== 'adulto' ? 'selected' : ''}>General</option>
+            <option value="adulto" ${g.clasificacion === 'adulto' ? 'selected' : ''}>+18</option>
+          </select>
+        </td>
         <td>${g.likes}</td>
         <td>${g.visitas}</td>
         <td>${g.reportes_pendientes > 0 ? `<span class="badge-reporte">${g.reportes_pendientes}</span>` : '0'}</td>
@@ -178,6 +185,27 @@
       btn.addEventListener('click', async () => {
         await api('restaurar', { method: 'POST', body: JSON.stringify({ grupo_id: +btn.dataset.restaurar }) });
         cargarTodo();
+      });
+    });
+
+    tbody.querySelectorAll('[data-clasificacion]').forEach((select) => {
+      select.addEventListener('change', async () => {
+        const grupoId = +select.dataset.clasificacion;
+        const valor = select.value;
+        const anterior = valor === 'adulto' ? 'normal' : 'adulto';
+        select.disabled = true;
+        try {
+          await api('clasificacion', {
+            method: 'POST',
+            body: JSON.stringify({ grupo_id: grupoId, clasificacion: valor }),
+          });
+          select.classList.toggle('admin-select-clasificacion--adulto', valor === 'adulto');
+        } catch (ex) {
+          select.value = anterior;
+          alert(ex.message || 'No se pudo guardar');
+        } finally {
+          select.disabled = false;
+        }
       });
     });
   }

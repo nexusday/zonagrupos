@@ -13,6 +13,9 @@
   # No exponer la ruta /public/ en la URL
   RewriteRule ^public/ - [F,L]
 
+  # SEO
+  RewriteRule ^sitemap\.xml$ public/sitemap.php [L]
+
   # API PHP
   RewriteRule ^api/(.*)$ api/$1 [L,QSA]
 

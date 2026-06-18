@@ -5,6 +5,7 @@ require_once __DIR__ . '/entorno.php';
 require_once __DIR__ . '/respuestas.php';
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/etiquetas-logica.php';
+require_once __DIR__ . '/texto.php';
 require_once __DIR__ . '/admin-auth.php';
 require_once __DIR__ . '/logger.php';
 
@@ -125,6 +126,33 @@ try {
         responderJson(['exito' => true, 'mensaje' => 'Grupo restaurado.']);
     }
 
+    if ($metodo === 'POST' && $accion === 'clasificacion') {
+        $datos = leerCuerpoJson();
+        $grupoId = (int) ($datos['grupo_id'] ?? 0);
+        $clasificacion = ($datos['clasificacion'] ?? 'normal') === 'adulto' ? 'adulto' : 'normal';
+
+        if ($grupoId <= 0) {
+            responderError('Grupo no válido.');
+        }
+
+        $stmtExiste = $bd->prepare('SELECT id FROM grupos WHERE id = :id LIMIT 1');
+        $stmtExiste->execute([':id' => $grupoId]);
+        if (!$stmtExiste->fetch()) {
+            responderError('Grupo no encontrado.', 404);
+        }
+
+        $bd->prepare('UPDATE grupos SET clasificacion = :clasificacion WHERE id = :id')
+           ->execute([':clasificacion' => $clasificacion, ':id' => $grupoId]);
+
+        registrarLog('info', 'Admin cambió clasificación', ['id' => $grupoId, 'clasificacion' => $clasificacion]);
+        responderJson([
+            'exito'         => true,
+            'mensaje'       => 'Clasificación actualizada.',
+            'clasificacion' => $clasificacion,
+            'etiqueta'      => etiquetaClasificacion($clasificacion),
+        ]);
+    }
+
     if ($metodo === 'GET' && $accion === 'reportes') {
         $estado = $_GET['estado'] ?? 'pendiente';
         $params = [];
@@ -198,6 +226,8 @@ function mapearGrupoAdmin(array $fila, array $etiquetas): array
         'visitas'            => (int) $fila['visitas'],
         'activo'             => (bool) $fila['activo'],
         'pais'               => ['codigo' => $fila['pais_codigo'], 'nombre' => $fila['pais_nombre']],
+        'clasificacion'      => $fila['clasificacion'] ?? 'normal',
+        'clasificacion_etiqueta' => etiquetaClasificacion($fila['clasificacion'] ?? 'normal'),
         'reportes_pendientes'=> (int) ($fila['reportes_pendientes'] ?? 0),
         'etiquetas'          => $etiquetas,
         'creado_en'          => $fila['creado_en'],

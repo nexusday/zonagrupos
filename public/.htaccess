@@ -5,6 +5,9 @@
   RewriteEngine On
   RewriteBase /
 
+  # SEO
+  RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
   # API PHP
   RewriteRule ^api/(.*)$ api/$1 [L,QSA]
 

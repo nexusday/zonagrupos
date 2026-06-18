@@ -189,3 +189,27 @@ body {
   font-size: .75rem;
   font-weight: 700;
 }
+
+.admin-select-clasificacion {
+  padding: .35rem .45rem;
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--texto);
+  border: 1px solid var(--borde);
+  font-family: inherit;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 5.5rem;
+}
+
+.admin-select-clasificacion--adulto {
+  border-color: rgba(244, 63, 94, 0.4);
+  color: #fb7185;
+  background: rgba(244, 63, 94, 0.08);
+}
+
+.admin-select-clasificacion:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}

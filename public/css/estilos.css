@@ -1066,6 +1066,64 @@ main {
 .badge-plataforma--discord  { background: rgba(88, 101, 242, 0.15); color: var(--discord); }
 .badge-plataforma--otro     { background: rgba(148, 148, 168, 0.15); color: var(--texto-suave); }
 
+.badge-clasificacion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0.5rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.badge-clasificacion--normal {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--texto-suave);
+  border: 1px solid var(--borde);
+}
+
+.badge-clasificacion--adulto {
+  background: rgba(244, 63, 94, 0.12);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.25);
+}
+
+.tarjeta-lista__badge-adulto {
+  flex-shrink: 0;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #fb7185;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+}
+
+.chip--adulto.chip--activo {
+  background: rgba(244, 63, 94, 0.15);
+  border-color: rgba(244, 63, 94, 0.35);
+  color: #fb7185;
+}
+
+.restriccion-opcion--adulto.restriccion-opcion--activa {
+  border-color: rgba(244, 63, 94, 0.4);
+  background: rgba(244, 63, 94, 0.08);
+}
+
+.filtros__grupo--contenido {
+  margin-top: 0.35rem;
+}
+
+@media (min-width: 768px) {
+  .filtros {
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+  }
+}
+
 .tarjeta-grupo__meta {
   display: flex;
   align-items: center;
@@ -1680,6 +1738,38 @@ body.modal-abierto .pie {
 
 .pagina-grupo .fondo-animado {
   opacity: 0.35;
+}
+
+/* Contenido inicial para buscadores (se reemplaza al cargar JS) */
+.seo-prerender {
+  padding: 1.5rem 0 0.5rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.seo-prerender h1 {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+  color: var(--texto);
+}
+
+.seo-prerender__meta {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+  margin: 0 0 0.75rem;
+}
+
+.seo-prerender p {
+  color: var(--texto-suave);
+  line-height: 1.6;
+  margin: 0 0 0.5rem;
+}
+
+.seo-prerender__etiquetas {
+  font-size: 0.85rem;
+  color: var(--texto-tenue);
 }
 
 .grupo-hero__meta {
