@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-$plataformasValidas = ['whatsapp', 'telegram', 'discord', 'otro'];
+$plataformasValidas = ['whatsapp', 'telegram', 'discord'];
 
 function generarSlug(string $nombre, int $id): string
 {
@@ -127,15 +127,11 @@ function validarEnlacePlataforma(string $enlace, string $plataforma): bool
         'whatsapp' => '/(chat\.whatsapp\.com|wa\.me)/i',
         'telegram' => '/(t\.me|telegram\.me)/i',
         'discord'  => '/(discord\.gg|discord\.com\/invite)/i',
-        'otro'     => null,
     ];
 
-    if ($plataforma === 'otro') {
-        return true;
-    }
-
     $patron = $patrones[$plataforma] ?? null;
-    return $patron && preg_match($patron, $enlace);
+
+    return $patron !== null && preg_match($patron, $enlace) === 1;
 }
 
 try {
@@ -339,7 +335,7 @@ try {
                 'telegram' => 'El enlace debe ser de Telegram (t.me).',
                 'discord'  => 'El enlace debe ser de Discord (discord.gg).',
             ];
-            responderError($mensajes[$plataforma] ?? 'Enlace no válido para la plataforma seleccionada.');
+            responderError($mensajes[$plataforma] ?? 'Solo se permiten enlaces de WhatsApp, Telegram o Discord.');
         }
 
         $stmtExiste = $bd->prepare('SELECT id, activo FROM grupos WHERE enlace = :enlace LIMIT 1');

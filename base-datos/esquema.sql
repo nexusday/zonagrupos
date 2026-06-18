@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS grupos (
   slug            VARCHAR(150) NULL,
   descripcion     VARCHAR(500) NOT NULL DEFAULT '',
   enlace          VARCHAR(500) NOT NULL,
-  plataforma      ENUM('whatsapp','telegram','discord','otro') NOT NULL DEFAULT 'whatsapp',
+  plataforma      ENUM('whatsapp','telegram','discord') NOT NULL DEFAULT 'whatsapp',
   pais_codigo     VARCHAR(5)   NOT NULL DEFAULT 'LAT',
   pais_nombre     VARCHAR(80)  NOT NULL DEFAULT 'Latinoamérica',
   restriccion_pais ENUM('todos','solo_pais') NOT NULL DEFAULT 'todos',

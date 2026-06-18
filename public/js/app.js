@@ -63,11 +63,33 @@
   };
 
   const placeholdersEnlace = {
-    whatsapp: 'https://chat.whatsapp.com/...',
+    whatsapp: 'https://chat.whatsapp.com/... o https://wa.me/...',
     telegram: 'https://t.me/...',
     discord: 'https://discord.gg/...',
-    otro: 'https://...',
   };
+
+  const patronesEnlace = {
+    whatsapp: /(chat\.whatsapp\.com|wa\.me)/i,
+    telegram: /(t\.me|telegram\.me)/i,
+    discord: /(discord\.gg|discord\.com\/invite)/i,
+  };
+
+  const mensajesEnlace = {
+    whatsapp: 'El enlace debe ser de WhatsApp (chat.whatsapp.com o wa.me).',
+    telegram: 'El enlace debe ser de Telegram (t.me).',
+    discord: 'El enlace debe ser de Discord (discord.gg o discord.com/invite).',
+  };
+
+  function validarEnlacePlataforma(enlace, plataforma) {
+    if (!patronesEnlace[plataforma]) return false;
+    try {
+      const url = new URL(enlace);
+      if (!['http:', 'https:'].includes(url.protocol)) return false;
+    } catch {
+      return false;
+    }
+    return patronesEnlace[plataforma].test(enlace);
+  }
 
   function parsearEtiquetasInput(texto) {
     if (!texto?.trim()) return [];
@@ -382,7 +404,7 @@
     });
     const plataforma = document.querySelector('input[name="plataforma"]:checked')?.value || 'whatsapp';
     const campoEnlace = document.getElementById('campo-enlace');
-    if (campoEnlace) campoEnlace.placeholder = placeholdersEnlace[plataforma] || 'https://...';
+    if (campoEnlace) campoEnlace.placeholder = placeholdersEnlace[plataforma] || placeholdersEnlace.whatsapp;
   }
 
   function actualizarSelectorRestriccion() {
@@ -556,9 +578,21 @@
         descripcion,
         etiquetas,
         enlace: document.getElementById('campo-enlace').value.trim(),
-        plataforma: document.querySelector('input[name="plataforma"]:checked').value,
+        plataforma: document.querySelector('input[name="plataforma"]:checked')?.value || 'whatsapp',
         restriccion_pais: document.querySelector('input[name="restriccion_pais"]:checked')?.value || 'todos',
       };
+
+      if (!['whatsapp', 'telegram', 'discord'].includes(datos.plataforma)) {
+        mostrarToast('Solo puedes publicar grupos de WhatsApp, Telegram o Discord.', 'error');
+        btnEnviar.disabled = false;
+        return;
+      }
+
+      if (!validarEnlacePlataforma(datos.enlace, datos.plataforma)) {
+        mostrarToast(mensajesEnlace[datos.plataforma] || 'Enlace no válido.', 'error');
+        btnEnviar.disabled = false;
+        return;
+      }
 
       log('info', 'Publicando grupo', { nombre: datos.nombre, plataforma: datos.plataforma });
 
