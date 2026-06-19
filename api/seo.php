@@ -114,6 +114,24 @@ function urlGrupo(string $slug, ?string $base = null): string
     return $base . '/grupo/' . rawurlencode($slug);
 }
 
+function slugEtiqueta(string $nombre): string
+{
+    $texto = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $nombre);
+    if ($texto === false || $texto === '') {
+        $texto = $nombre;
+    }
+    $texto = mb_strtolower(trim($texto));
+    $texto = preg_replace('/[^a-z0-9]+/', '-', $texto) ?? '';
+    $texto = trim($texto, '-');
+
+    return $texto !== '' ? $texto : 'tema';
+}
+
+function urlEtiqueta(string $nombre): string
+{
+    return '/tema/' . rawurlencode(slugEtiqueta($nombre));
+}
+
 function fechaIso(?string $fecha): ?string
 {
     if ($fecha === null || $fecha === '') {
@@ -152,7 +170,7 @@ function jsonLdSitio(?string $base = null): array
             '@type'       => 'SearchAction',
             'target'      => [
                 '@type'       => 'EntryPoint',
-                'urlTemplate' => $base . '/?busqueda={search_term_string}',
+                'urlTemplate' => $base . '/tema/{search_term_string}',
             ],
             'query-input' => 'required name=search_term_string',
         ],
@@ -374,7 +392,7 @@ function metaInicio(array $gruposRecientes = [], ?string $base = null): array
     $base = $base ?? urlBaseApp();
 
     return [
-        'titulo'       => 'Grupos de WhatsApp, Telegram y Discord para unirse | ZonaGrupos',
+        'titulo'       => 'Grupos WhatsApp, Telegram y Discord | ZonaGrupos',
         'descripcion'  => 'Directorio gratis con enlaces de invitación a grupos de WhatsApp, Telegram y Discord en Latinoamérica. Busca por país, tema o plataforma y únete en un clic.',
         'keywords'     => 'grupos whatsapp, grupos telegram, grupos discord, enlaces grupos, unirse grupos whatsapp, directorio grupos, comunidades latinoamérica',
         'canonical'    => $base . '/',
@@ -386,25 +404,30 @@ function metaInicio(array $gruposRecientes = [], ?string $base = null): array
     ];
 }
 
-function metaBusqueda(string $termino, ?string $base = null): array
+function metaTema(string $termino, ?string $base = null): array
 {
     $base = $base ?? urlBaseApp();
     $terminoLimpio = recortarTextoSeo($termino, 60);
     $titulo = $terminoLimpio !== ''
-        ? "Grupos sobre {$terminoLimpio} | ZonaGrupos"
-        : 'Buscar grupos | ZonaGrupos';
+        ? "Grupos de {$terminoLimpio} | ZonaGrupos"
+        : 'Explorar temas | ZonaGrupos';
 
     return [
         'titulo'       => $titulo,
-        'descripcion'  => "Resultados de grupos de WhatsApp, Telegram y Discord relacionados con «{$terminoLimpio}» en ZonaGrupos.",
-        'keywords'     => 'grupos whatsapp, grupos telegram, buscar grupos, ' . mb_strtolower($terminoLimpio),
-        'canonical'    => $base . '/',
+        'descripcion'  => "Grupos de WhatsApp, Telegram y Discord sobre «{$terminoLimpio}» en ZonaGrupos.",
+        'keywords'     => 'grupos whatsapp, grupos telegram, ' . mb_strtolower($terminoLimpio),
+        'canonical'    => $base . urlEtiqueta($termino),
         'robots'       => 'noindex, follow',
         'og_type'      => 'website',
         'og_image'     => urlImagenOgPortada($base),
-        'og_image_alt' => 'Buscar grupos — ZonaGrupos',
+        'og_image_alt' => 'Explorar temas — ZonaGrupos',
         'json_ld'      => null,
     ];
+}
+
+function metaBusqueda(string $termino, ?string $base = null): array
+{
+    return metaTema($termino, $base);
 }
 
 function metaTerminos(?string $base = null): array

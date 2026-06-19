@@ -32,6 +32,7 @@
 
   # Rutas amigables
   RewriteRule ^terminos/?$ public/terminos.php [L]
+  RewriteRule ^tema/([a-zA-Z0-9_-]+)/?$ public/index.php?tema=$1 [L,QSA]
   RewriteRule ^grupo/([a-zA-Z0-9_-]+)/?$ public/grupo.php?slug=$1 [L,QSA]
   RewriteRule ^zg-x7k9m2p/?$ public/zg-x7k9m2p/index.html [L,QSA]
   RewriteRule ^zg-x7k9m2p/(.*)$ public/zg-x7k9m2p/$1 [L,QSA]
@@ -67,6 +68,9 @@ Options -Indexes
 
 # ── Caché: CSS/JS/HTML siempre actualizados tras git pull ──
 <IfModule mod_headers.c>
+  Header always unset X-Powered-By
+  Header unset X-Powered-By
+
   <FilesMatch "\.(php|html)$">
     Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
     Header always set Pragma "no-cache"

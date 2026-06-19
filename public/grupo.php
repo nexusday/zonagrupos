@@ -126,7 +126,7 @@ if ($slug !== '') {
             <h2 class="detalle-bloque__titulo">Etiquetas</h2>
             <div class="detalle-grupo__etiquetas">
 <?php foreach ($etiquetas as $et): ?>
-              <a href="/?busqueda=<?= rawurlencode($et) ?>" class="etiqueta etiqueta--solo"><?= escOg($et) ?></a>
+              <a href="<?= escOg(urlEtiqueta($et)) ?>" class="etiqueta etiqueta--solo"><?= escOg($et) ?></a>
 <?php endforeach; ?>
             </div>
           </section>

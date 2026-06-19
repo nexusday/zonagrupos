@@ -379,6 +379,15 @@ function manejarSolicitud(req, res) {
     return;
   }
 
+  const coincidenciaTema = ruta.match(/^\/tema\/([^/]+)\/?$/);
+  if (coincidenciaTema) {
+    const archivoInicio = path.join(CARPETA_PUBLICA, 'index.php');
+    if (rutaPhp && fs.existsSync(archivoInicio)) {
+      ejecutarPhpPagina(archivoInicio, req, res, { tema: decodeURIComponent(coincidenciaTema[1]) });
+      return;
+    }
+  }
+
   if (ruta === '/' || ruta === '/index.html' || ruta === '/index.php') {
     const archivoInicio = path.join(CARPETA_PUBLICA, 'index.php');
     if (rutaPhp && fs.existsSync(archivoInicio)) {

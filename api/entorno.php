@@ -3,6 +3,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/cargar-config.php';
 
+if (function_exists('header_remove')) {
+    header_remove('X-Powered-By');
+}
+
 if (function_exists('mb_internal_encoding')) {
     mb_internal_encoding('UTF-8');
 }

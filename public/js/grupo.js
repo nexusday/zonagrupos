@@ -124,8 +124,14 @@
     if (!etiquetas?.length) {
       return '<p class="grupo-sin-etiquetas">Sin etiquetas</p>';
     }
+    const slugEtiqueta = (nombre) => (nombre || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || 'tema';
     return etiquetas.map((e) =>
-      `<a href="/?busqueda=${encodeURIComponent(e.nombre)}" class="etiqueta etiqueta--solo">${escaparHtml(e.nombre)}</a>`
+      `<a href="/tema/${encodeURIComponent(slugEtiqueta(e.nombre))}" class="etiqueta etiqueta--solo">${escaparHtml(e.nombre)}</a>`
     ).join('');
   }
 

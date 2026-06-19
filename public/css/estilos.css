@@ -2799,8 +2799,67 @@ body.modal-abierto .barra-publicar-movil {
 .seccion-guia__intro {
   color: var(--texto-suave);
   line-height: 1.65;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   font-size: 0.95rem;
+}
+
+.seccion-guia__sub {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.5rem;
+  color: var(--texto);
+}
+
+.seccion-guia__texto {
+  color: var(--texto-suave);
+  line-height: 1.65;
+  margin: 0 0 0.75rem;
+  font-size: 0.92rem;
+}
+
+.mapa-enlaces {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--borde);
+}
+
+@media (min-width: 640px) {
+  .mapa-enlaces {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.mapa-enlaces__titulo {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.65rem;
+  color: var(--texto);
+}
+
+.mapa-enlaces__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.mapa-enlaces__lista a {
+  color: var(--acento);
+  text-decoration: none;
+  font-size: 0.88rem;
+}
+
+.mapa-enlaces__lista a:hover {
+  text-decoration: underline;
+}
+
+.mapa-enlaces__meta {
+  color: var(--texto-suave);
+  font-size: 0.78rem;
 }
 
 .preguntas-frecuentes {

@@ -8,20 +8,43 @@ require_once dirname(__DIR__) . '/api/listado-seo.php';
 
 $gruposSeo = [];
 $etiquetasSeo = [];
+$gruposWhatsapp = [];
+$gruposTelegram = [];
+$gruposDiscord = [];
 $totalGruposSeo = 0;
+$temaActivo = trim($_GET['tema'] ?? '');
+if ($temaActivo === '' && isset($_SERVER['REQUEST_URI']) && preg_match('~/tema/([^/?]+)~', (string) $_SERVER['REQUEST_URI'], $coincidenciaTema)) {
+    $temaActivo = rawurldecode($coincidenciaTema[1]);
+} elseif ($temaActivo !== '') {
+    $temaActivo = rawurldecode($temaActivo);
+}
 
 try {
     $bdSeo = obtenerConexion();
-    $gruposSeo = gruposRecientesSeo($bdSeo, 36);
-    $etiquetasSeo = etiquetasPopularesSeo($bdSeo, 24);
-    $totalGruposSeo = contarGruposActivos($bdSeo);
+    $datosSeo = datosSeoInicio($bdSeo);
+    $gruposSeo = $datosSeo['grupos'];
+    $etiquetasSeo = $datosSeo['etiquetas'];
+    $gruposWhatsapp = $datosSeo['whatsapp'];
+    $gruposTelegram = $datosSeo['telegram'];
+    $gruposDiscord = $datosSeo['discord'];
+    $totalGruposSeo = $datosSeo['total'];
+
+    if ($temaActivo !== '') {
+        $temaActivo = resolverEtiquetaDesdeSlug($bdSeo, $temaActivo);
+    }
 } catch (Throwable) {
-  
+    // El listado JS sigue funcionando aunque falle la BD
 }
 
 $busquedaUrl = trim($_GET['busqueda'] ?? '');
-$meta = $busquedaUrl !== ''
-    ? metaBusqueda($busquedaUrl)
+if ($busquedaUrl !== '' && $temaActivo === '') {
+    header('Location: ' . urlEtiqueta($busquedaUrl), true, 301);
+    exit;
+}
+
+$terminoFiltro = $temaActivo !== '' ? $temaActivo : $busquedaUrl;
+$meta = $terminoFiltro !== ''
+    ? metaTema($terminoFiltro)
     : metaInicio($gruposSeo);
 ?><!DOCTYPE html>
 <html lang="es">
@@ -33,7 +56,7 @@ $meta = $busquedaUrl !== ''
   <link rel="stylesheet" href="/css/estilos.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
 </head>
-<body class="pagina-inicio">
+<body class="pagina-inicio"<?= $temaActivo !== '' ? ' data-tema="' . escHtmlSeo($temaActivo) . '"' : '' ?>>
 
   <div class="fondo-animado" aria-hidden="true">
     <div class="orb orb-1"></div>
@@ -184,10 +207,44 @@ $meta = $busquedaUrl !== ''
     </section>
 
     <section class="seccion-guia contenedor" aria-labelledby="titulo-guia">
-      <h2 id="titulo-guia" class="seccion-guia__titulo">Grupos de WhatsApp para unirse</h2>
+      <h2 id="titulo-guia" class="seccion-guia__titulo">Directorio de grupos en Latinoamérica</h2>
       <p class="seccion-guia__intro">
-        En ZonaGrupos reunimos enlaces de invitación a comunidades de WhatsApp, Telegram y Discord.
-        Puedes filtrar por plataforma, país o tema, o publicar el tuyo para que aparezca en la web.
+        ZonaGrupos recopila enlaces de invitación a comunidades de WhatsApp, Telegram y Discord.
+        Cada grupo tiene su propia ficha con descripción, país, etiquetas y botón para unirse.
+        El directorio es gratuito: puedes buscar por tema o plataforma, y también publicar el tuyo en pocos minutos.
+      </p>
+
+      <h3 class="seccion-guia__sub">Grupos de WhatsApp para unirse</h3>
+      <p class="seccion-guia__texto">
+        Los grupos de WhatsApp son la forma más directa de entrar a una comunidad desde el móvil.
+        Basta con tocar el enlace de invitación y confirmar en la app. En este directorio encontrarás grupos
+        de compra y venta, gaming, amistad, estudios, trabajo, humor y muchos temas más, organizados por país
+        cuando el administrador lo indica. Si administras un grupo y quieres más miembros, publícalo aquí
+        con una descripción clara: eso ayuda a que aparezca en búsquedas y atraiga gente realmente interesada.
+      </p>
+
+      <h3 class="seccion-guia__sub">Grupos de Telegram y Discord</h3>
+      <p class="seccion-guia__texto">
+        Telegram destaca en comunidades grandes, canales de noticias y grupos técnicos con archivos y bots.
+        Discord concentra servidores de videojuegos, estudios, programación y equipos que prefieren voz y texto en PC.
+        En ZonaGrupos los tres conviven: filtra por plataforma arriba del listado o explora las fichas recientes.
+        Cada enlace lleva a la app oficial correspondiente; nosotros no gestionamos las conversaciones dentro del grupo.
+      </p>
+
+      <h3 class="seccion-guia__sub">Cómo encontrar el grupo que buscas</h3>
+      <p class="seccion-guia__texto">
+        Usa el buscador con palabras clave como el nombre del juego, la ciudad o el país.
+        También puedes revisar las etiquetas del pie de página: llevan a listados filtrados por tema.
+        Ordena por recientes, populares o más visitados según lo que necesites.
+        Antes de unirte, lee la descripción y respeta las normas que deje el administrador.
+      </p>
+
+      <h3 class="seccion-guia__sub">Publicar tu grupo gratis</h3>
+      <p class="seccion-guia__texto">
+        Pulsa «Publicar grupo», pega el enlace de invitación (chat.whatsapp.com, t.me o discord.gg),
+        escribe un nombre descriptivo y una descripción honesta de qué se habla y quién puede entrar.
+        Añade entre una y diez etiquetas para que otros te encuentren.
+        Recibirás un correo con el enlace directo a la ficha de tu grupo para compartirlo donde quieras.
       </p>
 
       <div class="preguntas-frecuentes">
@@ -196,18 +253,53 @@ $meta = $busquedaUrl !== ''
           <p>Es una sala de chat dentro de WhatsApp donde varias personas hablan a la vez. Con el enlace de invitación, cualquiera puede entrar sin que el admin lo agregue manualmente.</p>
         </details>
         <details class="pregunta">
-          <summary>¿Cómo me uno desde aquí?</summary>
-          <p>Abre la ficha del grupo que te interese y pulsa «Unirse al grupo». Te redirige al enlace oficial de WhatsApp, Telegram o Discord.</p>
+          <summary>¿En qué se diferencia de un grupo privado?</summary>
+          <p>En el funcionamiento, nada. La diferencia está en que el enlace de invitación puede compartirse públicamente, así que cualquiera que lo tenga puede solicitar unirse.</p>
         </details>
         <details class="pregunta">
-          <summary>¿Puedo publicar mi grupo?</summary>
-          <p>Sí, gratis. Solo necesitas el enlace de invitación, un nombre, una descripción breve y al menos una etiqueta para que otros lo encuentren.</p>
+          <summary>¿Cómo me uno desde ZonaGrupos?</summary>
+          <p>Abre la ficha del grupo, pulsa «Unirse al grupo» y confirma en WhatsApp, Telegram o Discord. El enlace es el mismo que compartió quien lo publicó.</p>
+        </details>
+        <details class="pregunta">
+          <summary>¿Cómo obtengo un enlace de invitación?</summary>
+          <p>En WhatsApp: abre el grupo, toca el nombre arriba, entra en «Enlace de invitación» y copia el enlace. En Telegram y Discord el proceso es similar desde ajustes del grupo o servidor.</p>
         </details>
         <details class="pregunta">
           <summary>¿Cuántos miembros caben?</summary>
-          <p>WhatsApp admite hasta +1024 personas por grupo. Telegram y Discord tienen límites distintos según el tipo de comunidad.</p>
+          <p>WhatsApp admite hasta 1024 personas por grupo. Telegram y Discord permiten comunidades mucho más grandes según el tipo de chat o servidor.</p>
+        </details>
+        <details class="pregunta">
+          <summary>¿ZonaGrupos está vinculado a WhatsApp?</summary>
+          <p>No. Somos un directorio independiente. Las conversaciones ocurren en las apps oficiales y no tenemos acceso a ellas.</p>
         </details>
       </div>
+
+      <nav class="mapa-enlaces" aria-label="Grupos por plataforma">
+<?php if ($gruposWhatsapp !== []): ?>
+        <div class="mapa-enlaces__bloque">
+          <h3 class="mapa-enlaces__titulo">Grupos de WhatsApp recientes</h3>
+          <ul class="mapa-enlaces__lista">
+            <?= renderizarListaEnlacesGrupos($gruposWhatsapp) ?>
+          </ul>
+        </div>
+<?php endif; ?>
+<?php if ($gruposTelegram !== []): ?>
+        <div class="mapa-enlaces__bloque">
+          <h3 class="mapa-enlaces__titulo">Grupos de Telegram recientes</h3>
+          <ul class="mapa-enlaces__lista">
+            <?= renderizarListaEnlacesGrupos($gruposTelegram) ?>
+          </ul>
+        </div>
+<?php endif; ?>
+<?php if ($gruposDiscord !== []): ?>
+        <div class="mapa-enlaces__bloque">
+          <h3 class="mapa-enlaces__titulo">Grupos de Discord recientes</h3>
+          <ul class="mapa-enlaces__lista">
+            <?= renderizarListaEnlacesGrupos($gruposDiscord) ?>
+          </ul>
+        </div>
+<?php endif; ?>
+      </nav>
     </section>
   </main>
 
@@ -247,7 +339,8 @@ $meta = $busquedaUrl !== ''
         </div>
       </details>
 
-      <nav class="pie__enlaces" aria-label="Legal">
+      <nav class="pie__enlaces" aria-label="Enlaces del sitio">
+        <a href="/">Inicio</a>
         <a href="/terminos">Términos y condiciones</a>
       </nav>
       <p class="pie__copy">&copy; 2026 ZonaGrupos.Lat</p>

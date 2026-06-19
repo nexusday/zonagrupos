@@ -176,8 +176,17 @@
     }).join('');
   }
 
+  function slugEtiqueta(nombre) {
+    return (nombre || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || 'tema';
+  }
+
   function renderizarEtiquetaEnlace(et) {
-    return `<a href="/?busqueda=${encodeURIComponent(et.nombre)}" class="etiqueta etiqueta--enlace" role="listitem">
+    return `<a href="/tema/${encodeURIComponent(slugEtiqueta(et.nombre))}" class="etiqueta etiqueta--enlace" role="listitem">
       <span class="etiqueta__nombre">${escaparHtml(et.nombre)}</span>
       <span class="etiqueta__usos">${formatearNumero(et.usos || 0)}</span>
     </a>`;
@@ -455,6 +464,24 @@
   }
 
   function leerParametrosUrl() {
+    const temaInicial = document.body.dataset.tema?.trim();
+    if (temaInicial) {
+      estado.etiqueta = temaInicial.toLowerCase();
+      estado.busqueda = '';
+      elementos.inputBusqueda.value = temaInicial;
+      estado.pagina = 1;
+      return;
+    }
+
+    const partes = window.location.pathname.split('/').filter(Boolean);
+    if (partes[0] === 'tema' && partes[1]) {
+      estado.etiqueta = decodeURIComponent(partes[1]).replace(/-/g, ' ').toLowerCase();
+      estado.busqueda = '';
+      elementos.inputBusqueda.value = estado.etiqueta;
+      estado.pagina = 1;
+      return;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const busqueda = params.get('busqueda')?.trim() || '';
     if (!busqueda) return;
