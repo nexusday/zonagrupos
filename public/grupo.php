@@ -20,7 +20,7 @@ if ($slug === '' && isset($_SERVER['REQUEST_URI'])) {
 $appUrl = urlBaseApp();
 $grupoDatos = null;
 $etiquetas = [];
-$metaPagina = metaInicio($appUrl);
+$metaPagina = metaInicio([], $appUrl);
 
 if ($slug !== '') {
     try {
@@ -88,23 +88,57 @@ if ($slug !== '') {
   </header>
 
   <main class="pagina-grupo__main">
-<?php if ($grupoDatos): ?>
-    <article class="seo-prerender" id="seo-prerender" aria-hidden="true">
-      <h1><?= escOg($grupoDatos['nombre']) ?></h1>
-      <p class="seo-prerender__meta">
-        Grupo de <?= escOg(nombrePlataformaSeo($grupoDatos['plataforma'])) ?>
-        <?php if (($grupoDatos['pais_nombre'] ?? '') !== ''): ?>
-          · <?= escOg($grupoDatos['pais_nombre']) ?>
-        <?php endif; ?>
-        · <?= escOg(($grupoDatos['clasificacion'] ?? 'normal') === 'adulto' ? 'Contenido sexual (+18)' : 'Grupo general') ?>
-      </p>
-      <p><?= escOg($grupoDatos['descripcion']) ?></p>
+<?php if ($grupoDatos):
+    $plataformaNombre = nombrePlataformaSeo($grupoDatos['plataforma']);
+    $esAdulto = ($grupoDatos['clasificacion'] ?? 'normal') === 'adulto';
+    $paisNombre = trim($grupoDatos['pais_nombre'] ?? '');
+    $tienePais = $paisNombre !== '' && codigoPaisReal($grupoDatos['pais_codigo'] ?? '');
+?>
+    <div id="contenido-grupo" class="contenido-grupo">
+      <section class="grupo-hero grupo-hero--<?= escOg($grupoDatos['plataforma']) ?>">
+        <div class="grupo-hero__inner contenedor">
+          <span class="badge-plataforma badge-plataforma--<?= escOg($grupoDatos['plataforma']) ?>">
+            <?= escOg($plataformaNombre) ?>
+          </span>
+          <?php if ($esAdulto): ?>
+          <span class="badge-clasificacion badge-clasificacion--adulto">+18 · Contenido sexual</span>
+          <?php else: ?>
+          <span class="badge-clasificacion badge-clasificacion--normal">Grupo general</span>
+          <?php endif; ?>
+          <h1 class="grupo-hero__titulo"><?= escOg($grupoDatos['nombre']) ?></h1>
+          <p class="grupo-hero__meta">
+            <?php if ($tienePais): ?>
+            <span><?= escOg($paisNombre) ?></span>
+            <?php endif; ?>
+            <span>Grupo de <?= escOg($plataformaNombre) ?></span>
+          </p>
+        </div>
+      </section>
+
+      <div class="contenedor grupo-layout">
+        <article class="detalle-grupo detalle-grupo--completo">
+          <section class="detalle-bloque">
+            <h2 class="detalle-bloque__titulo">Descripción</h2>
+            <p class="detalle-grupo__descripcion"><?= escOg($grupoDatos['descripcion']) ?></p>
+          </section>
 <?php if ($etiquetas !== []): ?>
-      <p class="seo-prerender__etiquetas">Temas: <?= escOg(implode(', ', $etiquetas)) ?></p>
+          <section class="detalle-bloque">
+            <h2 class="detalle-bloque__titulo">Etiquetas</h2>
+            <div class="detalle-grupo__etiquetas">
+<?php foreach ($etiquetas as $et): ?>
+              <a href="/?busqueda=<?= rawurlencode($et) ?>" class="etiqueta etiqueta--solo"><?= escOg($et) ?></a>
+<?php endforeach; ?>
+            </div>
+          </section>
 <?php endif; ?>
-    </article>
+        </article>
+      </div>
+    </div>
+<?php else: ?>
+    <div id="contenido-grupo" class="contenido-grupo" hidden></div>
 <?php endif; ?>
-    <div id="estado-carga" class="estado estado--carga grupo-estado-centrado">
+
+    <div id="estado-carga" class="estado estado--carga grupo-estado-centrado"<?= $grupoDatos ? ' hidden' : '' ?>>
       <div class="spinner"></div>
       <p>Cargando grupo...</p>
     </div>
@@ -116,7 +150,9 @@ if ($slug !== '') {
       <a href="/" class="btn btn--secundario">Ir al inicio</a>
     </div>
 
-    <div id="contenido-grupo" class="contenido-grupo" hidden></div>
+<?php if (!$grupoDatos): ?>
+    <!-- contenido-grupo ya definido arriba cuando no hay datos -->
+<?php endif; ?>
 
     <section id="seccion-relacionados" class="grupos-relacionados contenedor" hidden>
       <div class="grupos-relacionados__cabecera">

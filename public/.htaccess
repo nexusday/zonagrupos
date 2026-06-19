@@ -8,8 +8,12 @@
   RewriteCond %{HTTPS} off
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
+
   RewriteRule ^og/portada\.png$ og/portada.php [L]
   RewriteRule ^og/grupo/([a-zA-Z0-9_-]+)\.png$ og/grupo.php?slug=$1 [L,QSA]
+  RewriteRule ^robots\.txt$ robots.php [L]
   RewriteRule ^sitemap\.xml$ sitemap.php [L]
 
   RewriteRule ^api/(.*)$ api/$1 [L,QSA]
@@ -27,6 +31,7 @@
 
   RewriteRule ^$ index.php [L]
   RewriteRule ^index\.html$ index.php [L,QSA]
+  RewriteRule ^grupo\.html$ / [L,R=301]
 </IfModule>
 
 <IfModule mod_mime.c>

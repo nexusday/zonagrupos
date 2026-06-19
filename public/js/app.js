@@ -308,7 +308,10 @@
   async function cargarGrupos() {
     if (estado.cargando) return;
     estado.cargando = true;
-    alternarEstados({ carga: true });
+    const tieneSsr = Boolean(elementos.grilla?.querySelector('.tarjeta-lista--ssr'));
+    if (!tieneSsr) {
+      alternarEstados({ carga: true });
+    }
     actualizarFiltroActivo();
 
     try {
@@ -728,6 +731,11 @@
     enlazarEventos();
     leerParametrosUrl();
     VisitanteGeo.iniciarBadge().then(() => actualizarAyudaPais());
+
+    if (elementos.gridEtiquetas?.querySelector('.etiqueta--enlace')) {
+      explorarEtiquetasEstado.cargado = true;
+    }
+
     await cargarEstadisticas();
     actualizarFiltroActivo();
     await cargarGrupos();

@@ -2,9 +2,27 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/api/entorno.php';
+require_once dirname(__DIR__) . '/api/conexion.php';
 require_once dirname(__DIR__) . '/api/seo.php';
+require_once dirname(__DIR__) . '/api/listado-seo.php';
 
-$meta = metaInicio();
+$gruposSeo = [];
+$etiquetasSeo = [];
+$totalGruposSeo = 0;
+
+try {
+    $bdSeo = obtenerConexion();
+    $gruposSeo = gruposRecientesSeo($bdSeo, 36);
+    $etiquetasSeo = etiquetasPopularesSeo($bdSeo, 24);
+    $totalGruposSeo = contarGruposActivos($bdSeo);
+} catch (Throwable) {
+  
+}
+
+$busquedaUrl = trim($_GET['busqueda'] ?? '');
+$meta = $busquedaUrl !== ''
+    ? metaBusqueda($busquedaUrl)
+    : metaInicio($gruposSeo);
 ?><!DOCTYPE html>
 <html lang="es">
 <head>
@@ -80,7 +98,7 @@ $meta = metaInicio();
 
     <section class="barra-filtros" aria-label="Filtros de grupos">
       <div class="contenedor">
-        <p class="grupos-total" id="stat-grupos" aria-live="polite">Grupos totales: —</p>
+        <p class="grupos-total" id="stat-grupos" aria-live="polite"><?= $totalGruposSeo > 0 ? 'Grupos totales: ' . number_format($totalGruposSeo, 0, ',', '.') : 'Grupos totales: —' ?></p>
         <div class="filtros">
           <div class="filtros__grupo" role="group" aria-label="Filtrar por plataforma">
             <button class="chip chip--activo" data-plataforma="">Todos</button>
@@ -147,7 +165,11 @@ $meta = metaInicio();
           <button class="btn btn--secundario" id="btn-reintentar">Reintentar</button>
         </div>
 
-        <div class="grilla-grupos" id="grilla-grupos" role="list"></div>
+        <div class="grilla-grupos" id="grilla-grupos" role="list">
+<?php foreach ($gruposSeo as $grupoSeo): ?>
+          <?= renderizarTarjetaGrupoSeo($grupoSeo) ?>
+<?php endforeach; ?>
+        </div>
 
         <nav class="paginacion" id="paginacion" aria-label="Paginación" hidden>
           <button class="btn btn--fantasma btn--icono" id="btn-pag-anterior" aria-label="Página anterior">
@@ -158,6 +180,33 @@ $meta = metaInicio();
             <i data-lucide="chevron-right"></i>
           </button>
         </nav>
+      </div>
+    </section>
+
+    <section class="seccion-guia contenedor" aria-labelledby="titulo-guia">
+      <h2 id="titulo-guia" class="seccion-guia__titulo">Grupos de WhatsApp para unirse</h2>
+      <p class="seccion-guia__intro">
+        En ZonaGrupos reunimos enlaces de invitación a comunidades de WhatsApp, Telegram y Discord.
+        Puedes filtrar por plataforma, país o tema, o publicar el tuyo para que aparezca en la web.
+      </p>
+
+      <div class="preguntas-frecuentes">
+        <details class="pregunta">
+          <summary>¿Qué es un grupo de WhatsApp?</summary>
+          <p>Es una sala de chat dentro de WhatsApp donde varias personas hablan a la vez. Con el enlace de invitación, cualquiera puede entrar sin que el admin lo agregue manualmente.</p>
+        </details>
+        <details class="pregunta">
+          <summary>¿Cómo me uno desde aquí?</summary>
+          <p>Abre la ficha del grupo que te interese y pulsa «Unirse al grupo». Te redirige al enlace oficial de WhatsApp, Telegram o Discord.</p>
+        </details>
+        <details class="pregunta">
+          <summary>¿Puedo publicar mi grupo?</summary>
+          <p>Sí, gratis. Solo necesitas el enlace de invitación, un nombre, una descripción breve y al menos una etiqueta para que otros lo encuentren.</p>
+        </details>
+        <details class="pregunta">
+          <summary>¿Cuántos miembros caben?</summary>
+          <p>WhatsApp admite hasta +1024 personas por grupo. Telegram y Discord tienen límites distintos según el tipo de comunidad.</p>
+        </details>
       </div>
     </section>
   </main>
@@ -186,9 +235,13 @@ $meta = metaInicio();
           <div class="explorar-temas__buscar">
             <input type="search" id="input-explorar-etiquetas" class="explorar-temas__input" placeholder="Filtrar temas..." autocomplete="off">
           </div>
-          <div class="explorar-temas__grid" id="grid-etiquetas" role="list"></div>
+          <div class="explorar-temas__grid" id="grid-etiquetas" role="list">
+<?php foreach ($etiquetasSeo as $etSeo): ?>
+            <?= renderizarEnlaceEtiquetaSeo($etSeo) ?>
+<?php endforeach; ?>
+          </div>
           <div class="explorar-temas__pie">
-            <span class="explorar-temas__info" id="info-explorar-etiquetas"></span>
+            <span class="explorar-temas__info" id="info-explorar-etiquetas"><?= $etiquetasSeo !== [] ? count($etiquetasSeo) . ' temas populares' : '' ?></span>
             <button type="button" class="btn btn--fantasma btn--mini" id="btn-mas-etiquetas" hidden>Cargar más</button>
           </div>
         </div>

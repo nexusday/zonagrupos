@@ -396,6 +396,10 @@ function manejarSolicitud(req, res) {
   }
 
   if (ruta === '/robots.txt') {
+    const archivoRobots = path.join(CARPETA_PUBLICA, 'robots.php');
+    if (fs.existsSync(archivoRobots)) {
+      return ejecutarPhp(archivoRobots, req, res);
+    }
     servirEstatico(path.join(CARPETA_PUBLICA, 'robots.txt'), res);
     return;
   }
@@ -407,7 +411,8 @@ function manejarSolicitud(req, res) {
     if (rutaPhp && fs.existsSync(archivoGrupo)) {
       ejecutarPhpPagina(archivoGrupo, req, res, { slug });
     } else {
-      servirEstatico(path.join(CARPETA_PUBLICA, 'grupo.html'), res);
+      res.writeHead(302, { Location: '/' });
+      res.end();
     }
     return;
   }

@@ -452,8 +452,8 @@
       }
 
       const contenedor = document.getElementById('contenido-grupo');
-      document.getElementById('seo-prerender')?.remove();
       contenedor.innerHTML = renderizarPagina(grupo);
+      contenedor.hidden = false;
       mostrarVista('contenido');
 
       if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [contenedor] });

@@ -32,6 +32,7 @@ try {
         "SELECT slug, actualizado_en, creado_en
          FROM grupos
          WHERE activo = 1 AND slug IS NOT NULL AND slug != ''
+           AND (clasificacion IS NULL OR clasificacion != 'adulto')
          ORDER BY actualizado_en DESC"
     );
 

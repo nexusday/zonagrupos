@@ -166,7 +166,7 @@ function jsonLdGrupo(array $grupo, array $etiquetas = [], ?string $base = null):
     $url = urlGrupo($slug, $base);
     $titulo = construirTituloGrupo($grupo);
     $descripcion = construirDescripcionGrupo($grupo, $etiquetas);
-    $imagen = $base . '/img/zonagrupos.png';
+    $imagen = urlImagenOgGrupo($slug, $base);
 
     $grafo = [
         jsonLdSitio($base),
@@ -261,45 +261,149 @@ function urlImagenOgGrupo(string $slug, ?string $base = null): string
     return $base . '/og/grupo/' . rawurlencode($slug) . '.png';
 }
 
-function jsonLdInicio(?string $base = null): array
+function jsonLdListadoGrupos(array $grupos, ?string $base = null): array
+{
+    $base = $base ?? urlBaseApp();
+    $elementos = [];
+
+    foreach (array_values($grupos) as $posicion => $grupo) {
+        $slug = (string) ($grupo['slug'] ?? '');
+        if ($slug === '') {
+            continue;
+        }
+        $elementos[] = [
+            '@type'    => 'ListItem',
+            'position' => $posicion + 1,
+            'url'      => urlGrupo($slug, $base),
+            'name'     => trim($grupo['nombre'] ?? 'Grupo'),
+        ];
+    }
+
+    if ($elementos === []) {
+        return [];
+    }
+
+    return [
+        '@type'           => 'ItemList',
+        '@id'             => $base . '/#listado-grupos',
+        'name'            => 'Grupos recientes en ZonaGrupos',
+        'numberOfItems'   => count($elementos),
+        'itemListElement' => $elementos,
+    ];
+}
+
+function jsonLdFaqInicio(?string $base = null): array
 {
     $base = $base ?? urlBaseApp();
 
     return [
-        '@context' => 'https://schema.org',
-        '@graph'   => [
-            jsonLdSitio($base),
+        '@type'      => 'FAQPage',
+        '@id'        => $base . '/#faq',
+        'mainEntity' => [
             [
-                '@type'       => 'Organization',
-                '@id'         => $base . '/#organizacion',
-                'name'        => 'ZonaGrupos',
-                'url'         => $base . '/',
-                'logo'        => [
-                    '@type'  => 'ImageObject',
-                    'url'    => $base . '/img/favicon-192.png',
-                    'width'  => 192,
-                    'height' => 192,
+                '@type'          => 'Question',
+                'name'           => '¿Qué es un grupo de WhatsApp?',
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text'  => 'Es una sala de chat dentro de WhatsApp donde varias personas conversan a la vez. Si tienes el enlace de invitación, puedes unirte sin que el admin te agregue manualmente.',
                 ],
-                'description' => 'Directorio de grupos de WhatsApp, Telegram y Discord para la comunidad latina.',
+            ],
+            [
+                '@type'          => 'Question',
+                'name'           => '¿Cómo me uno a un grupo desde ZonaGrupos?',
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text'  => 'Elige un grupo del listado, entra a su ficha y pulsa «Unirse al grupo». Te llevará al enlace oficial de WhatsApp, Telegram o Discord según corresponda.',
+                ],
+            ],
+            [
+                '@type'          => 'Question',
+                'name'           => '¿Puedo publicar mi propio grupo?',
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text'  => 'Sí. Pulsa «Publicar grupo», pega el enlace de invitación, escribe nombre y descripción, y quedará visible en el directorio en segundos.',
+                ],
+            ],
+            [
+                '@type'          => 'Question',
+                'name'           => '¿Cuántas personas caben en un grupo de WhatsApp?',
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text'  => 'WhatsApp permite hasta 1024 miembros por grupo. Telegram y Discord tienen otros límites según el tipo de comunidad.',
+                ],
             ],
         ],
     ];
 }
 
-function metaInicio(?string $base = null): array
+function jsonLdInicio(array $gruposRecientes = [], ?string $base = null): array
+{
+    $base = $base ?? urlBaseApp();
+
+    $grafo = [
+        jsonLdSitio($base),
+        [
+            '@type'       => 'Organization',
+            '@id'         => $base . '/#organizacion',
+            'name'        => 'ZonaGrupos',
+            'url'         => $base . '/',
+            'logo'        => [
+                '@type'  => 'ImageObject',
+                'url'    => $base . '/img/favicon-192.png',
+                'width'  => 192,
+                'height' => 192,
+            ],
+            'description' => 'Directorio de grupos de WhatsApp, Telegram y Discord para la comunidad latina.',
+        ],
+        jsonLdFaqInicio($base),
+    ];
+
+    $listado = jsonLdListadoGrupos($gruposRecientes, $base);
+    if ($listado !== []) {
+        $grafo[] = $listado;
+    }
+
+    return [
+        '@context' => 'https://schema.org',
+        '@graph'   => $grafo,
+    ];
+}
+
+function metaInicio(array $gruposRecientes = [], ?string $base = null): array
 {
     $base = $base ?? urlBaseApp();
 
     return [
-        'titulo'       => 'Grupos de WhatsApp, Telegram y Discord | ZonaGrupos',
-        'descripcion'  => 'Encuentra y publica grupos de WhatsApp, Telegram y Discord en Latinoamérica. Busca por tema, país o plataforma. ¡Gratis!',
-        'keywords'     => 'grupos whatsapp, grupos telegram, grupos discord, enlaces grupos, directorio grupos, comunidades latinoamérica',
+        'titulo'       => 'Grupos de WhatsApp, Telegram y Discord para unirse | ZonaGrupos',
+        'descripcion'  => 'Directorio gratis con enlaces de invitación a grupos de WhatsApp, Telegram y Discord en Latinoamérica. Busca por país, tema o plataforma y únete en un clic.',
+        'keywords'     => 'grupos whatsapp, grupos telegram, grupos discord, enlaces grupos, unirse grupos whatsapp, directorio grupos, comunidades latinoamérica',
         'canonical'    => $base . '/',
         'robots'       => 'index, follow, max-image-preview:large',
         'og_type'      => 'website',
         'og_image'     => urlImagenOgPortada($base),
         'og_image_alt' => 'ZonaGrupos — Directorio de grupos en Latinoamérica',
-        'json_ld'      => jsonLdInicio($base),
+        'json_ld'      => jsonLdInicio($gruposRecientes, $base),
+    ];
+}
+
+function metaBusqueda(string $termino, ?string $base = null): array
+{
+    $base = $base ?? urlBaseApp();
+    $terminoLimpio = recortarTextoSeo($termino, 60);
+    $titulo = $terminoLimpio !== ''
+        ? "Grupos sobre {$terminoLimpio} | ZonaGrupos"
+        : 'Buscar grupos | ZonaGrupos';
+
+    return [
+        'titulo'       => $titulo,
+        'descripcion'  => "Resultados de grupos de WhatsApp, Telegram y Discord relacionados con «{$terminoLimpio}» en ZonaGrupos.",
+        'keywords'     => 'grupos whatsapp, grupos telegram, buscar grupos, ' . mb_strtolower($terminoLimpio),
+        'canonical'    => $base . '/',
+        'robots'       => 'noindex, follow',
+        'og_type'      => 'website',
+        'og_image'     => urlImagenOgPortada($base),
+        'og_image_alt' => 'Buscar grupos — ZonaGrupos',
+        'json_ld'      => null,
     ];
 }
 
@@ -324,18 +428,24 @@ function metaGrupo(array $grupo, array $etiquetas = [], ?string $base = null): a
 {
     $base = $base ?? urlBaseApp();
     $slug = (string) ($grupo['slug'] ?? '');
-    $indexar = $slug !== '';
+    $esAdulto = ($grupo['clasificacion'] ?? 'normal') === 'adulto';
+    $indexar = $slug !== '' && !$esAdulto;
+
+    $robots = 'noindex, nofollow';
+    if ($slug !== '') {
+        $robots = $indexar ? 'index, follow, max-image-preview:large' : 'noindex, follow';
+    }
 
     return [
         'titulo'       => construirTituloGrupo($grupo),
         'descripcion'  => construirDescripcionGrupo($grupo, $etiquetas),
         'keywords'     => construirKeywordsGrupo($grupo, $etiquetas),
         'canonical'    => urlGrupo($slug, $base),
-        'robots'       => $indexar ? 'index, follow, max-image-preview:large' : 'noindex, nofollow',
+        'robots'       => $robots,
         'og_type'      => 'article',
         'og_image'     => urlImagenOgGrupo($slug, $base),
         'og_image_alt' => trim($grupo['nombre'] ?? 'Grupo en ZonaGrupos'),
-        'json_ld'      => $indexar ? jsonLdGrupo($grupo, $etiquetas, $base) : null,
+        'json_ld'      => ($slug !== '' && !$esAdulto) ? jsonLdGrupo($grupo, $etiquetas, $base) : null,
     ];
 }
 

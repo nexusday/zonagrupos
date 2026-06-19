@@ -2782,3 +2782,77 @@ body.modal-abierto .barra-publicar-movil {
   gap: 0.5rem;
   margin-top: 1rem;
 }
+
+/* ── Guía SEO (home) ── */
+.seccion-guia {
+  padding: 2.5rem 0 3rem;
+  max-width: 720px;
+}
+
+.seccion-guia__titulo {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--texto);
+}
+
+.seccion-guia__intro {
+  color: var(--texto-suave);
+  line-height: 1.65;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.preguntas-frecuentes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pregunta {
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-md);
+  background: rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+}
+
+.pregunta summary {
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--texto);
+  list-style: none;
+}
+
+.pregunta summary::-webkit-details-marker {
+  display: none;
+}
+
+.pregunta summary::after {
+  content: '+';
+  float: right;
+  color: var(--texto-suave);
+  font-weight: 400;
+}
+
+.pregunta[open] summary::after {
+  content: '−';
+}
+
+.pregunta p {
+  padding: 0 1rem 1rem;
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.tarjeta-lista--ssr .tarjeta-lista__plataforma {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  min-width: 4.5rem;
+  text-align: center;
+}
